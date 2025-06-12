@@ -65,9 +65,9 @@ export default function IndexInfoPage() {
     if (isLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <StatCard title="Total Vectors" isLoading={true} />
-          <StatCard title="Indexed Vectors" isLoading={true} />
-          <StatCard title="Vector Size" isLoading={true} />
+          <StatCard title="Collection Name" isLoading={true} />
+          <StatCard title="Indexed Records" isLoading={true} />
+          <StatCard title="Index Status" isLoading={true} />
         </div>
       );
     }
@@ -82,12 +82,12 @@ export default function IndexInfoPage() {
       );
     }
 
-    if (indexInfo) {
+    if (indexInfo && indexInfo.collection_info) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <StatCard title="Total Vectors" value={indexInfo.vectors_count} />
-          <StatCard title="Indexed Vectors" value={indexInfo.indexed_vectors_count} />
-          <StatCard title="Vector Size" value={indexInfo.vectors_dim} />
+          <StatCard title="Collection Name" value={indexInfo.collection_info.table_info.tablename} isLoading={false} />
+          <StatCard title="Indexed Records" value={indexInfo.collection_info.record_count} isLoading={false} />
+          <StatCard title="Index Status" value={indexInfo.collection_info.table_info.hasindexes ? 'Active' : 'Not Active'} isLoading={false} />
         </div>
       );
     }

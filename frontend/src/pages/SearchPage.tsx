@@ -32,8 +32,13 @@ export default function SearchPage() {
     setResults([]);
 
     try {
-      const searchResults = await searchDocuments(selectedProject.toString(), query, limit);
-      setResults(searchResults);
+      const response = await searchDocuments(selectedProject.toString(), query, limit);
+      if (response && response.signal === 'vectordb_search_success') {
+        setResults(response.results);
+      } else {
+        const errorMessage = response?.signal || 'An unknown error occurred during search.';
+        toast.error(errorMessage);
+      }
     } catch (err: any) {
       const errorMessage = err.message || 'An unexpected error occurred during search.';
       toast.error(errorMessage);

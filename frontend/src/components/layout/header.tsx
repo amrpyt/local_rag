@@ -43,9 +43,7 @@ export function Header({ className }: HeaderProps) {
       </div>
       
       <div className="ml-auto flex items-center gap-4">
-        <Button variant="outline" size="sm">
-          New Project
-        </Button>
+        {/* The "New Project" button is now part of the SimpleProjectSelector */}
       </div>
     </header>
   );

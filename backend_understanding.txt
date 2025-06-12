@@ -1,0 +1,65 @@
+## Backend Service Analysis: mini-RAG
+
+This document outlines the architecture and API endpoints of the Python backend for the mini-RAG application.
+
+### 1. Core Technology Stack
+
+- **Framework**: FastAPI
+- **Database**: PostgreSQL (using `asyncpg` and `SQLAlchemy`)
+- **Data Migration**: Alembic
+- **Vector Database**: Supports both `PGVector` and `Qdrant` (configurable via `.env`).
+- **LLM Services**: Supports `Google Gemini`, `Cohere`, and `OpenAI` (configurable via `.env`).
+- **Configuration**: Managed through a `.env` file, loaded by `pydantic-settings`.
+
+### 2. Application Workflow
+
+The backend is designed around a clear, multi-step RAG pipeline:
+
+1.  **Project Scoping**: All operations are tied to a `project_id`. A project is created implicitly if it doesn't exist when data is first uploaded.
+2.  **Data Upload**: Users upload source documents (`.txt`, `.pdf`) to a specific project.
+3.  **Content Processing**: The backend processes these documents, splitting them into smaller text chunks.
+4.  **Indexing**: The text chunks are converted into vector embeddings and stored in the configured vector database.
+5.  **Answering**: The system retrieves relevant chunks based on a user's query, constructs a prompt for a large language model (LLM), and returns a generated answer.
+
+### 3. Key API Endpoints
+
+All endpoints are prefixed with `/api/v1`.
+
+#### Projects (`/projects`)
+
+-   **`GET /`**:
+    -   **Description**: Retrieves a list of all existing project IDs.
+    -   **Response**: `{"signal": "success", "projects": [1, 2, ...]}`
+
+#### Data (`/data`)
+
+-   **`POST /upload/{project_id}`**:
+    -   **Description**: Uploads a single file to a specified project.
+    -   **Request**: `project_id` in path, `multipart/form-data` with a file.
+    -   **Response**: `{"signal": "file_upload_success", "file_id": "asset_id"}`
+
+-   **`POST /process/{project_id}`**:
+    -   **Description**: Processes uploaded files into chunks. Can process all files in a project or a single specified file.
+    -   **Request Body**: `{ "file_id": Optional[str], "chunk_size": int, "do_reset": bool }`
+    -   **Response**: `{"signal": "processing_success", "inserted_chunks": int, "processed_files": int}`
+
+#### NLP & RAG (`/nlp`)
+
+-   **`POST /index/push/{project_id}`**:
+    -   **Description**: Indexes all processed chunks for a project into the vector database. This must be run after processing.
+    -   **Request Body**: `{ "do_reset": bool }`
+    -   **Response**: `{"signal": "insert_into_vectordb_success", "inserted_items_count": int}`
+
+-   **`GET /index/info/{project_id}`**:
+    -   **Description**: Retrieves metadata and statistics about the vector index for a project.
+    -   **Response**: `{"signal": "vectordb_collection_retrieved", "collection_info": {...}}`
+
+-   **`POST /index/search/{project_id}`**:
+    -   **Description**: Performs a raw semantic search against the vector index.
+    -   **Request Body**: `{ "text": str, "limit": int }`
+    -   **Response**: `{"signal": "vectordb_search_success", "results": [...]}`
+
+-   **`POST /index/answer/{project_id}`**:
+    -   **Description**: The main RAG endpoint. Takes a user query, finds relevant documents, and generates a final answer.
+    -   **Request Body**: `{ "text": str, "limit": int }`
+    -   **Response**: `{"signal": "rag_answer_success", "answer": str, "full_prompt": str, ...}` 

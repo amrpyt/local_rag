@@ -26,8 +26,14 @@ export default function IndexPushPage() {
 
     try {
       const resultData = await pushToIndex(selectedProject.toString(), doReset);
-      setResult(resultData);
-      toast.success(`Successfully indexed ${resultData.inserted_items_count} items.`, { id: toastId });
+
+      if (resultData && resultData.signal === 'insert_into_vectordb_success') {
+        setResult(resultData);
+        toast.success(`Successfully indexed ${resultData.inserted_items_count} items.`, { id: toastId });
+      } else {
+        const errorMessage = resultData?.signal || 'An unknown error occurred during indexing.';
+        toast.error(errorMessage, { id: toastId });
+      }
     } catch (error: any) {
       console.error("Indexing failed:", error);
       const errorMessage = error.message || 'An unexpected error occurred.';

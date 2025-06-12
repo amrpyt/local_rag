@@ -39,7 +39,7 @@ export default function ProcessPage() {
         do_reset: doReset ? 1 : 0,
       });
 
-      if (response.data && response.data.signal === 'success') {
+      if (response.data && response.data.signal === 'processing_success') {
         const resultData = {
           processed_files: response.data.processed_files,
           inserted_chunks: response.data.inserted_chunks,

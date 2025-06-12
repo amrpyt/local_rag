@@ -19,7 +19,10 @@ export default function UploadPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'application/pdf': ['.pdf'] }
+    accept: {
+      'application/pdf': ['.pdf'],
+      'text/plain': ['.txt'],
+    }
   });
 
   const handleUpload = async () => {
@@ -46,19 +49,24 @@ export default function UploadPage() {
     try {
       const results = await Promise.all(uploadPromises);
       
-      const successfulUploads = results.filter(res => res.data.signal === 'success');
+      const successfulUploads = results.filter(res => res.data.signal === 'file_upload_success');
       
       if (successfulUploads.length === files.length) {
         toast.success(`Successfully uploaded ${files.length} file(s).`, { id: toastId });
         setFiles([]);
       } else {
         const failedCount = files.length - successfulUploads.length;
-        toast.error(`Could not upload ${failedCount} file(s).`, { id: toastId });
+        toast.error(`Could not upload ${failedCount} file(s). Check console for details.`, { id: toastId });
+        results.forEach((res, index) => {
+          if (res.data.signal !== 'file_upload_success') {
+            console.error(`Failed to upload ${files[index].name}:`, res.data.signal);
+          }
+        });
       }
 
     } catch (error) {
       console.error("Upload failed:", error);
-      toast.error("An unexpected error occurred during upload.", { id: toastId });
+      toast.error(error.response?.data?.signal || "An unexpected error occurred during upload.", { id: toastId });
     } finally {
       setIsUploading(false);
     }
@@ -95,10 +103,10 @@ export default function UploadPage() {
         <div className="flex flex-col items-center justify-center gap-4">
           <Upload className="h-12 w-12 text-muted-foreground" />
           <p className="text-muted-foreground">
-            {isDragActive ? 'Drop the files here ...' : "Drag 'n' drop PDF files here, or click to select"}
+            {isDragActive ? 'Drop the files here ...' : "Drag 'n' drop PDF or TXT files here, or click to select"}
           </p>
           <p className="text-xs text-muted-foreground">
-            (Only *.pdf files will be accepted)
+            (Only *.pdf and *.txt files will be accepted)
           </p>
         </div>
       </div>

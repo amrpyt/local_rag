@@ -41,12 +41,18 @@ export default function QAPage() {
     try {
       const response = await askQuestion(selectedProject.toString(), input);
 
-      const botMessage: Message = { 
-        role: 'bot', 
-        content: response.answer,
-        prompt: response.prompt
-      };
-      setMessages((prev) => [...prev, botMessage]);
+      if (response && response.signal === 'rag_answer_success') {
+        const botMessage: Message = { 
+          role: 'bot', 
+          content: response.answer,
+          prompt: response.full_prompt
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } else {
+        const errorMessage = response?.signal || 'Sorry, I ran into an error.';
+        const errorBotMessage: Message = { role: 'bot', content: errorMessage, error: true };
+        setMessages((prev) => [...prev, errorBotMessage]);
+      }
     } catch (err) {
       const errorBotMessage: Message = { role: 'bot', content: 'Sorry, I ran into an error. Please try again.', error: true };
       setMessages((prev) => [...prev, errorBotMessage]);
