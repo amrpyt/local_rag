@@ -1,8 +1,8 @@
 import { useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { cn } from '../../lib/utils';
+import { Button } from '../ui/button';
 import { ChevronRight } from 'lucide-react';
-import { ProjectSelector } from '@/components/ProjectSelector';
+import { SimpleProjectSelector } from '../SimpleProjectSelector';
 
 interface HeaderProps {
   className?: string;
@@ -39,7 +39,7 @@ export function Header({ className }: HeaderProps) {
       <div className="flex items-center">
         <h1 className="text-xl font-bold">{getPageTitle()}</h1>
         <ChevronRight className="mx-2 h-4 w-4 text-muted-foreground" />
-        <ProjectSelector />
+        <SimpleProjectSelector />
       </div>
       
       <div className="ml-auto flex items-center gap-4">

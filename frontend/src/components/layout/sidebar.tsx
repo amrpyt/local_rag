@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
@@ -69,6 +71,7 @@ export function Sidebar({ className }: SidebarProps) {
         collapsed ? 'w-[80px]' : 'w-[240px]',
         className
       )}
+      data-collapsed={collapsed}
     >
       <div className="flex items-center justify-between p-4 h-14 border-b border-border">
         <h1 
@@ -84,6 +87,7 @@ export function Sidebar({ className }: SidebarProps) {
           size="icon" 
           onClick={() => setCollapsed(!collapsed)}
           className="ml-auto"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </Button>

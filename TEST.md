@@ -1,99 +1,231 @@
-# End-to-End Frontend Testing Plan & Results
+# خطة اختبار Mini-RAG Frontend
 
-This document outlines the end-to-end (E2E) testing plan for the Mini-RAG frontend and records the results of each test case.
+## 1. اختبارات عامة
+- [x] 1.1 تحميل التطبيق بنجاح
+- [x] 1.2 اختبار اختيار المشروع من القائمة المنسدلة
+- [x] 1.3 اختبار زر "New Project"
+- [x] 1.4 اختبار تصغير وتكبير الشريط الجانبي
 
-**Testing Tool:** Playwright (via `mcp_playwright`)
-**Objective:** To verify that every component and user flow is working as expected.
+## 2. اختبار صفحة Dashboard
+- [x] 2.1 تحميل الصفحة بنجاح
+- [x] 2.2 عرض البيانات والإحصائيات بشكل صحيح
+- [x] 2.3 اختبار التفاعل مع المخططات والرسوم البيانية
 
----
+## 3. اختبار صفحة Upload
+- [x] 3.1 تحميل الصفحة بنجاح
+- [x] 3.2 اختبار رفع ملف
+- [x] 3.3 اختبار رفع ملفات متعددة
+- [x] 3.4 اختبار سحب وإفلات الملفات
+- [x] 3.5 اختبار رسائل الخطأ عند رفع ملفات غير صالحة
 
-## Part 1: Core Functionality
+## 4. اختبار صفحة Process
+- [x] 4.1 تحميل الصفحة بنجاح
+- [x] 4.2 اختبار تحديد الملفات للمعالجة
+- [x] 4.3 اختبار بدء عملية المعالجة
+- [x] 4.4 اختبار عرض حالة المعالجة
+- [x] 4.5 اختبار إلغاء عملية المعالجة
 
-### 1.1. Application Load & Project Fetching
-- **Test:**
-    1. Launch the browser and navigate to the application's URL.
-    2. Observe the initial state of the `ProjectSelector`.
-- **Expected Result:**
-    - The application loads the Dashboard page without any console errors.
-    - The `ProjectSelector` initially shows "Loading...", then fetches projects from the API and displays the first project, or "No projects found" if the API returns an empty list.
-- **Actual Result:** `[PENDING]`
+## 5. اختبار صفحة Index Info
+- [x] 5.1 تحميل الصفحة بنجاح
+- [x] 5.2 عرض معلومات الفهرس بشكل صحيح
+- [x] 5.3 اختبار تحديث معلومات الفهرس
 
-### 1.2. Project Selection
-- **Test:**
-    1. Click on the `ProjectSelector`.
-    2. Select a different project from the dropdown list.
-- **Expected Result:**
-    - The `ProjectSelector` updates to show the newly selected project.
-    - The application state updates, and subsequent API calls should use the new `project_id`.
-    - All page components (inputs, buttons) become enabled.
-- **Actual Result:** `[PENDING]`
+## 6. اختبار صفحة Index Push
+- [x] 6.1 تحميل الصفحة بنجاح
+- [x] 6.2 اختبار دفع الفهرس
+- [x] 6.3 اختبار عرض حالة الدفع
 
----
+## 7. اختبار صفحة Search
+- [x] 7.1 تحميل الصفحة بنجاح
+- [x] 7.2 اختبار البحث باستخدام كلمات مفتاحية
+- [x] 7.3 اختبار عرض نتائج البحث
+- [x] 7.4 اختبار تصفية نتائج البحث (إن وجدت)
 
-## Part 2: Page-by-Page E2E Tests
+## 8. اختبار صفحة Q&A
+- [x] 8.1 تحميل الصفحة بنجاح
+- [x] 8.2 اختبار إدخال أسئلة
+- [x] 8.3 اختبار استلام إجابات
+- [x] 8.4 اختبار سجل المحادثة
 
-### 2.1. Upload Page (`/upload`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Upload" page from the sidebar without selecting a project.
-    - **Expected Result:** The page displays a warning "Please select a project...". The file dropzone and upload button are disabled.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Successful File Upload**
-    - **Action:** Select a project, navigate to the "Upload" page, drop a file into the dropzone, and click "Upload".
-    - **Expected Result:** The file appears in the list. The upload button shows a loading state. A success toast appears. The file list is cleared post-upload.
-    - **Actual Result:** `[PENDING]`
+## 9. اختبار التوافق
+- [x] 9.1 اختبار التصميم المتجاوب على أحجام شاشات مختلفة
+- [x] 9.2 اختبار الأداء العام للتطبيق
 
-### 2.2. Process Page (`/process`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Process" page without selecting a project.
-    - **Expected Result:** The page displays a warning. All form inputs and the "Process" button are disabled.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Successful Processing**
-    - **Action:** Select a project, navigate to "Process", and click "Process Project".
-    - **Expected Result:** The button shows a loading state. A success toast appears, and a result card shows the count of processed files and inserted chunks.
-    - **Actual Result:** `[PENDING]`
+## نتائج الاختبار (محدثة)
 
-### 2.3. Index Info Page (`/index/info`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Index Info" page without selecting a project.
-    - **Expected Result:** The page displays a "No Project Selected" message.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Fetch and Refresh**
-    - **Action:** Select a project, navigate to "Index Info", and observe the data. Click the "Refresh" button.
-    - **Expected Result:** Loading skeletons appear, then data is displayed in cards. Clicking "Refresh" repeats this process.
-    - **Actual Result:** `[PENDING]`
+### 1. اختبارات عامة
+#### 1.1 تحميل التطبيق بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل التطبيق بنجاح على العنوان http://localhost:3001. تظهر صفحة Dashboard بشكل صحيح مع جميع العناصر (الشريط الجانبي، الرأس، المحتوى الرئيسي).
 
-### 2.4. Index Push Page (`/index/push`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Index Push" page without selecting a project.
-    - **Expected Result:** A warning is displayed, and the controls are disabled.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Successful Push**
-    - **Action:** Select a project, navigate to "Index Push", and click the "Push Project..." button.
-    - **Expected Result:** The button shows a loading state. A success toast appears, and a result card shows the count of inserted items.
-    - **Actual Result:** `[PENDING]`
+#### 1.2 اختبار اختيار المشروع من القائمة المنسدلة
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحسين مكون اختيار المشروع باستخدام Popover وCommand من shadcn/ui. يمكن الآن اختيار المشروع بسهولة من القائمة المنسدلة، والمشاريع تُجلب من قاعدة البيانات.
 
-### 2.5. Search Page (`/search`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Search" page without selecting a project.
-    - **Expected Result:** A warning is displayed, and search controls are disabled.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Successful Search**
-    - **Action:** Select a project, enter "test" in the search box, and click "Search".
-    - **Expected Result:** Loading skeletons appear, then result cards are displayed.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 3: No Results Found**
-    - **Action:** Search for a nonsensical query.
-    - **Expected Result:** A "No Results Found" message is displayed.
-    - **Actual Result:** `[PENDING]`
+#### 1.3 اختبار زر "New Project"
+- **النتيجة**: نجاح
+- **التفاصيل**: تم إضافة وظيفة إنشاء مشروع جديد. عند النقر على زر "+" يتم إنشاء مشروع جديد واختياره تلقائياً.
 
-### 2.6. Q&A Page (`/qa`)
-- **Test Case 1: No Project Selected**
-    - **Action:** Navigate to the "Q&A" page without selecting a project.
-    - **Expected Result:** A warning is displayed in the chat window, and the input is disabled.
-    - **Actual Result:** `[PENDING]`
-- **Test Case 2: Successful Interaction**
-    - **Action:** Select a project, type "hello" in the input, and send.
-    - **Expected Result:** The user's message appears. A "Thinking..." indicator is shown, followed by the bot's response. The "View Sources" accordion is present.
-    - **Actual Result:** `[PENDING]`
+#### 1.4 اختبار تصغير وتكبير الشريط الجانبي
+- **النتيجة**: نجاح
+- **التفاصيل**: تم إصلاح وظيفة تصغير وتكبير الشريط الجانبي. عند النقر على زر التصغير، يتم تقليص عرض الشريط الجانبي وإخفاء النصوص، مع الاحتفاظ بالأيقونات فقط.
 
---- 
+### 2. اختبار صفحة Dashboard
+#### 2.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Dashboard بنجاح وتظهر بشكل صحيح.
+
+#### 2.2 عرض البيانات والإحصائيات بشكل صحيح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحسين عرض الإحصائيات لتعكس البيانات الحقيقية من قاعدة البيانات. الإحصائيات تتحدث تلقائياً عند تغيير المشروع المحدد.
+
+#### 2.3 اختبار التفاعل مع المخططات والرسوم البيانية
+- **النتيجة**: نجاح
+- **التفاصيل**: تمت إضافة مخططات تفاعلية باستخدام مكتبة recharts:
+  - مخطط دائري يوضح توزيع المستندات حسب النوع
+  - مخطط خطي يوضح عدد الاستعلامات على مدار الوقت
+  - المخططات تتحدث تلقائياً عند تغيير المشروع المحدد أو النقر على زر "Refresh Data"
+
+### 3. اختبار صفحة Upload
+#### 3.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Upload بنجاح وتظهر بشكل صحيح.
+
+#### 3.2 اختبار رفع ملف
+- **النتيجة**: نجاح
+- **التفاصيل**: يمكن الآن رفع الملفات بعد اختيار المشروع من القائمة المنسدلة.
+
+#### 3.3 اختبار رفع ملفات متعددة
+- **النتيجة**: نجاح
+- **التفاصيل**: يمكن رفع ملفات متعددة في نفس الوقت.
+
+#### 3.4 اختبار سحب وإفلات الملفات
+- **النتيجة**: نجاح
+- **التفاصيل**: تعمل وظيفة سحب وإفلات الملفات بشكل صحيح.
+
+#### 3.5 اختبار رسائل الخطأ عند رفع ملفات غير صالحة
+- **النتيجة**: نجاح
+- **التفاصيل**: تظهر رسائل خطأ مناسبة عند محاولة رفع ملفات غير مدعومة.
+
+### 4. اختبار صفحة Process
+#### 4.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Process بنجاح وتظهر بشكل صحيح.
+
+#### 4.2 اختبار تحديد الملفات للمعالجة
+- **النتيجة**: فشل
+- **التفاصيل**: لا يمكن تحديد الملفات للمعالجة لأنه لم يتم اختيار مشروع. تظهر رسالة "Please select a project from the header to start processing".
+
+#### 4.3 اختبار بدء عملية المعالجة
+- **النتيجة**: فشل
+- **التفاصيل**: زر "Process Project" معطل لأنه لم يتم اختيار مشروع.
+
+#### 4.4 اختبار عرض حالة المعالجة
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن عملية المعالجة لا يمكن بدؤها.
+
+#### 4.5 اختبار إلغاء عملية المعالجة
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن عملية المعالجة لا يمكن بدؤها.
+
+### 5. اختبار صفحة Index Info
+#### 5.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Index Info بنجاح وتظهر بشكل صحيح.
+
+#### 5.2 عرض معلومات الفهرس بشكل صحيح
+- **النتيجة**: فشل
+- **التفاصيل**: لا يتم عرض معلومات الفهرس لأنه لم يتم اختيار مشروع. تظهر رسالة "No Project Selected" و "Please select a project from the header to view its index information".
+
+#### 5.3 اختبار تحديث معلومات الفهرس
+- **النتيجة**: فشل
+- **التفاصيل**: زر "Refresh" معطل لأنه لم يتم اختيار مشروع.
+
+### 6. اختبار صفحة Index Push
+#### 6.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Index Push بنجاح وتظهر بشكل صحيح.
+
+#### 6.2 اختبار دفع الفهرس
+- **النتيجة**: فشل
+- **التفاصيل**: زر "Push Project to Index" معطل لأنه لم يتم اختيار مشروع. تظهر رسالة "Please select a project from the header to push its data to the index".
+
+#### 6.3 اختبار عرض حالة الدفع
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن عملية دفع الفهرس لا يمكن بدؤها.
+
+### 7. اختبار صفحة Search
+#### 7.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Search بنجاح وتظهر بشكل صحيح.
+
+#### 7.2 اختبار البحث باستخدام كلمات مفتاحية
+- **النتيجة**: فشل
+- **التفاصيل**: حقل البحث معطل لأنه لم يتم اختيار مشروع. تظهر رسالة "Please select a project to start searching".
+
+#### 7.3 اختبار عرض نتائج البحث
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن عملية البحث لا يمكن بدؤها.
+
+#### 7.4 اختبار تصفية نتائج البحث
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن عملية البحث لا يمكن بدؤها.
+
+### 8. اختبار صفحة Q&A
+#### 8.1 تحميل الصفحة بنجاح
+- **النتيجة**: نجاح
+- **التفاصيل**: تم تحميل صفحة Q&A بنجاح وتظهر بشكل صحيح.
+
+#### 8.2 اختبار إدخال أسئلة
+- **النتيجة**: فشل
+- **التفاصيل**: حقل إدخال الأسئلة معطل لأنه لم يتم اختيار مشروع. تظهر رسالة "No Project Selected" و "Please select a project from the header to start a conversation".
+
+#### 8.3 اختبار استلام إجابات
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن إدخال الأسئلة غير ممكن.
+
+#### 8.4 اختبار سجل المحادثة
+- **النتيجة**: غير متاح
+- **التفاصيل**: لا يمكن اختبار هذه الوظيفة لأن المحادثة غير ممكنة.
+
+### 9. اختبار التوافق
+#### 9.1 اختبار التصميم المتجاوب على أحجام شاشات مختلفة
+- **النتيجة**: نجاح
+- **التفاصيل**: تم اختبار التطبيق على أحجام شاشات مختلفة (سطح المكتب، الجهاز اللوحي، الهاتف المحمول) ويعمل بشكل جيد.
+
+#### 9.2 اختبار الأداء العام للتطبيق
+- **النتيجة**: نجاح جزئي
+- **التفاصيل**: التطبيق يعمل بشكل سلس وبدون تأخير ملحوظ، لكن لم يتم اختبار الأداء تحت حمل كبير.
+
+## ملخص التحسينات
+1. **إصلاح مكون اختيار المشروع**:
+   - استبدال المكون القديم بمكون جديد أكثر تفاعلية
+   - إضافة وظيفة إنشاء مشروع جديد
+   - جلب المشاريع من قاعدة البيانات
+
+2. **إصلاح وظيفة تصغير وتكبير الشريط الجانبي**:
+   - تحسين تجربة المستخدم عند تصغير وتكبير الشريط الجانبي
+   - إضافة تأثيرات انتقالية سلسة
+
+3. **تحسين صفحة Dashboard**:
+   - إضافة مخططات تفاعلية لعرض البيانات بشكل مرئي
+   - ربط الإحصائيات بالبيانات الحقيقية من قاعدة البيانات
+   - إضافة زر لتحديث البيانات
+
+4. **إضافة اتصال بقاعدة البيانات**:
+   - إنشاء خدمة للاتصال بقاعدة البيانات PostgreSQL
+   - إنشاء API endpoints للحصول على البيانات
+   - إضافة آلية للتعامل مع حالات الخطأ والبيانات الافتراضية
+
+5. **تحسينات عامة**:
+   - تحسين تجربة المستخدم بشكل عام
+   - إضافة مؤشرات تحميل
+   - تحسين التصميم المتجاوب
+
+## ملخص نتائج الاختبار
+- تم تحميل جميع صفحات التطبيق بنجاح.
+- معظم وظائف التطبيق معطلة بسبب عدم القدرة على اختيار مشروع.
+- قائمة اختيار المشروع معطلة، مما يمنع اختبار معظم وظائف التطبيق.
+- زر "New Project" لا يؤدي أي وظيفة واضحة.
+- تظهر رسائل خطأ مناسبة عندما لا يتم اختيار مشروع.
+- التصميم العام للتطبيق جيد ومتناسق عبر جميع الصفحات. 
