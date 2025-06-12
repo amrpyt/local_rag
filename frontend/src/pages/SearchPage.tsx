@@ -5,18 +5,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '../components/ui/skeleton';
 import { Search, FileText, AlertCircle, FileQuestion, BarChart, Loader2 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import apiClient from '../api/client';
+import { searchDocuments, SearchResult } from '../api/db-client';
 import { toast } from 'sonner';
 
 export default function SearchPage() {
   const { selectedProject } = useProject();
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(5);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (e) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
       toast.error("Please enter a search query.");
@@ -32,18 +32,10 @@ export default function SearchPage() {
     setResults([]);
 
     try {
-      const response = await apiClient.post(`/nlp/index/search/${selectedProject}`, {
-        text: query,
-        limit: limit,
-      });
-
-      if (response.data && response.data.signal === 'success') {
-        setResults(response.data.results);
-      } else {
-        toast.error(response.data.signal || 'Search failed due to an unknown error.');
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.detail || 'An unexpected error occurred during search.';
+      const searchResults = await searchDocuments(selectedProject.toString(), query, limit);
+      setResults(searchResults);
+    } catch (err: any) {
+      const errorMessage = err.message || 'An unexpected error occurred during search.';
       toast.error(errorMessage);
       console.error(err);
     } finally {
@@ -51,7 +43,7 @@ export default function SearchPage() {
     }
   };
   
-  const ResultCard = ({ result }) => (
+  const ResultCard = ({ result }: { result: SearchResult }) => (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">

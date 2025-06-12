@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- heading "Mini-RAG" [level=1]
+- button "Collapse sidebar":
+  - img
+- navigation:
+  - link "Dashboard":
+    - /url: /
+    - img
+    - text: Dashboard
+  - link "Upload":
+    - /url: /upload
+    - img
+    - text: Upload
+  - link "Process":
+    - /url: /process
+    - img
+    - text: Process
+  - link "Search":
+    - /url: /search
+    - img
+    - text: Search
+  - link "Q&A":
+    - /url: /qa
+    - img
+    - text: Q&A
+  - link "Index":
+    - /url: /index
+    - img
+    - text: Index
+  - link "About":
+    - /url: /about
+    - img
+    - text: About
+- text: v1.0.0
+- banner:
+  - heading "Process Documents" [level=1]
+  - img
+  - combobox [disabled]
+  - button "Create new project":
+    - img
+  - button "New Project"
+- main:
+  - heading "Process Documents" [level=2]
+  - paragraph: Split uploaded documents into chunks for indexing. This step is crucial for effective search and retrieval.
+  - img
+  - paragraph: Please select a project from the header to start processing.
+  - heading "Processing Settings" [level=3]
+  - paragraph: Configure how your documents will be chunked.
+  - text: Chunk Size
+  - spinbutton "Chunk Size" [disabled]: "100"
+  - paragraph: The number of characters in each chunk.
+  - text: Overlap Size
+  - spinbutton "Overlap Size" [disabled]: "20"
+  - paragraph: The number of characters to overlap between chunks.
+  - switch "Reset existing chunks" [disabled]
+  - text: Reset existing chunks
+  - button "Process Project null" [disabled]
+- region "Notifications alt+T"
+```

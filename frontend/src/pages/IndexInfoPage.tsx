@@ -4,16 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Skeleton } from '../components/ui/skeleton';
 import { AlertCircle, RefreshCcw } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import apiClient from '../api/client';
+import { fetchIndexInfo, IndexInfo } from '../api/db-client';
 import { toast } from 'sonner';
 
 export default function IndexInfoPage() {
   const { selectedProject } = useProject();
-  const [indexInfo, setIndexInfo] = useState(null);
+  const [indexInfo, setIndexInfo] = useState<IndexInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchIndexInfo = useCallback(async () => {
+  const loadIndexInfo = useCallback(async () => {
     if (!selectedProject) {
       setIndexInfo(null);
       setError(null);
@@ -23,17 +23,10 @@ export default function IndexInfoPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get(`/nlp/index/info/${selectedProject}`);
-      if (response.data && response.data.signal === 'success') {
-        setIndexInfo(response.data.collection_info);
-      } else {
-        const errorMessage = response.data.signal || 'Failed to fetch index info.';
-        setError(errorMessage);
-        setIndexInfo(null);
-        toast.error(errorMessage);
-      }
+      const data = await fetchIndexInfo(selectedProject);
+      setIndexInfo(data);
     } catch (err) {
-      const errorMessage = err.response?.data?.detail || 'An unexpected error occurred.';
+      const errorMessage = err.message || 'An unexpected error occurred.';
       setError(errorMessage);
       setIndexInfo(null);
       toast.error(errorMessage);
@@ -44,8 +37,8 @@ export default function IndexInfoPage() {
   }, [selectedProject]);
   
   useEffect(() => {
-    fetchIndexInfo();
-  }, [fetchIndexInfo]);
+    loadIndexInfo();
+  }, [loadIndexInfo]);
   
   const StatCard = ({ title, value, isLoading }) => (
     <Card>
@@ -111,7 +104,7 @@ export default function IndexInfoPage() {
             View details and statistics about your vector database collection.
           </p>
         </div>
-        <Button onClick={fetchIndexInfo} disabled={isLoading || !selectedProject} variant="outline">
+        <Button onClick={loadIndexInfo} disabled={isLoading || !selectedProject} variant="outline">
           <RefreshCcw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>

@@ -5,14 +5,14 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { AlertCircle, Loader2, Database } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import apiClient from '../api/client';
+import { pushToIndex, PushResult } from '../api/db-client';
 import { toast } from 'sonner';
 
 export default function IndexPushPage() {
   const { selectedProject } = useProject();
   const [doReset, setDoReset] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<PushResult | null>(null);
 
   const handlePush = async () => {
     if (!selectedProject) {
@@ -25,20 +25,12 @@ export default function IndexPushPage() {
     const toastId = toast.loading('Indexing in progress...');
 
     try {
-      const response = await apiClient.post(`/nlp/index/push/${selectedProject}`, {
-        do_reset: doReset ? 1 : 0,
-      });
-
-      if (response.data && response.data.signal === 'success') {
-        const resultData = { count: response.data.inserted_items_count };
-        setResult(resultData);
-        toast.success(`Successfully indexed ${resultData.count} items.`, { id: toastId });
-      } else {
-        toast.error(response.data.signal || 'An unknown error occurred.', { id: toastId });
-      }
-    } catch (error) {
+      const resultData = await pushToIndex(selectedProject.toString(), doReset);
+      setResult(resultData);
+      toast.success(`Successfully indexed ${resultData.inserted_items_count} items.`, { id: toastId });
+    } catch (error: any) {
       console.error("Indexing failed:", error);
-      const errorMessage = error.response?.data?.detail || 'An unexpected error occurred.';
+      const errorMessage = error.message || 'An unexpected error occurred.';
       toast.error(errorMessage, { id: toastId });
     } finally {
       setIsPushing(false);
@@ -103,7 +95,7 @@ export default function IndexPushPage() {
             <CardTitle>Indexing Complete</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Successfully inserted <strong>{result.count}</strong> items into the vector database.</p>
+            <p>Successfully inserted <strong>{result.inserted_items_count}</strong> items into the vector database.</p>
           </CardContent>
         </Card>
       )}

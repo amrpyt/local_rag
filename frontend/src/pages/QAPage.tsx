@@ -6,12 +6,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 import { Send, User, Bot, Loader2, AlertCircle, Sparkles, MessageSquare, Info } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import apiClient from '../api/client';
+import { askQuestion, QAResult, SearchResult } from '../api/db-client';
 import Markdown from 'react-markdown';
+
+interface Message {
+  role: 'user' | 'bot';
+  content: string;
+  prompt?: string;
+  error?: boolean;
+}
 
 export default function QAPage() {
   const { selectedProject } = useProject();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -22,31 +29,26 @@ export default function QAPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSend = async (e) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading || !selectedProject) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post(`/nlp/index/answer/${selectedProject}`, { text: input });
+      const response = await askQuestion(selectedProject.toString(), input);
 
-      if (response.data && response.data.signal === 'success') {
-        const botMessage = { 
-          role: 'bot', 
-          content: response.data.answer,
-          prompt: response.data.full_prompt
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      } else {
-         const errorBotMessage = { role: 'bot', content: 'Sorry, I ran into an error. Please try again.', error: true };
-         setMessages((prev) => [...prev, errorBotMessage]);
-      }
+      const botMessage: Message = { 
+        role: 'bot', 
+        content: response.answer,
+        prompt: response.prompt
+      };
+      setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
-      const errorBotMessage = { role: 'bot', content: 'Sorry, I ran into an error. Please try again.', error: true };
+      const errorBotMessage: Message = { role: 'bot', content: 'Sorry, I ran into an error. Please try again.', error: true };
       setMessages((prev) => [...prev, errorBotMessage]);
       console.error(err);
     } finally {
@@ -54,7 +56,7 @@ export default function QAPage() {
     }
   };
 
-  const Message = ({ message }) => (
+  const Message = ({ message }: { message: Message }) => (
     <div className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
       {message.role === 'bot' && (
         <Avatar>
@@ -69,7 +71,7 @@ export default function QAPage() {
           <Accordion type="single" collapsible className="w-full mt-2">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-xs flex items-center gap-1">
-                <Info className="h-3 w-3" /> View Sources & Prompt
+                <Info className="h-3 w-3" /> View Prompt
               </AccordionTrigger>
               <AccordionContent className="text-xs bg-background/50 p-2 rounded prose-sm">
                 <pre className="whitespace-pre-wrap font-mono">{message.prompt}</pre>

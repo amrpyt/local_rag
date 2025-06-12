@@ -1,0 +1,102 @@
+# Page snapshot
+
+```yaml
+- heading "Mini-RAG" [level=1]
+- button "Collapse sidebar":
+  - img
+- navigation:
+  - link "Dashboard":
+    - /url: /
+    - img
+    - text: Dashboard
+  - link "Upload":
+    - /url: /upload
+    - img
+    - text: Upload
+  - link "Process":
+    - /url: /process
+    - img
+    - text: Process
+  - link "Search":
+    - /url: /search
+    - img
+    - text: Search
+  - link "Q&A":
+    - /url: /qa
+    - img
+    - text: Q&A
+  - link "Index":
+    - /url: /index
+    - img
+    - text: Index
+  - link "About":
+    - /url: /about
+    - img
+    - text: About
+- text: v1.0.0
+- banner:
+  - heading "Dashboard" [level=1]
+  - img
+  - combobox [disabled]
+  - button "Create new project":
+    - img
+  - button "New Project"
+- main:
+  - heading "Dashboard" [level=2]
+  - paragraph: Welcome to Mini-RAG, a personal document question answering system
+  - button "Refresh Data" [disabled]:
+    - img
+    - text: Refresh Data
+  - text: Documents
+  - img
+  - text: 0 Indexed documents Queries
+  - img
+  - text: 0 Search queries
+  - heading "Quick Actions" [level=3]
+  - img
+  - heading "Upload Documents" [level=3]
+  - paragraph: Upload PDF documents to analyze
+  - link "Get Started":
+    - /url: /upload
+  - img
+  - heading "Process Documents" [level=3]
+  - paragraph: Split documents into chunks
+  - link "Get Started":
+    - /url: /process
+  - img
+  - heading "Search Documents" [level=3]
+  - paragraph: Search across your documents
+  - link "Get Started":
+    - /url: /search
+  - img
+  - heading "Ask Questions" [level=3]
+  - paragraph: Get answers from your documents
+  - link "Get Started":
+    - /url: /qa
+  - img
+  - heading "Manage Index" [level=3]
+  - paragraph: View and manage your vector index
+  - link "Get Started":
+    - /url: /index/info
+  - heading "API Connection Test" [level=3]
+  - strong: "Status:"
+  - text: Connected successfully!
+  - strong: "Projects:"
+  - list:
+    - listitem: Project 2
+    - listitem: Project 1
+    - listitem: Project 3
+    - listitem: Project 4
+    - listitem: Project 7
+    - listitem: Project 5
+  - heading "Direct API Test" [level=3]
+  - paragraph: Test direct connection to API endpoints
+  - paragraph:
+    - strong: "Current Project:"
+    - text: None
+  - paragraph:
+    - strong: "Status:"
+    - text: Not tested
+  - button "Test API"
+- region "Notifications alt+T"
+```

@@ -9,6 +9,7 @@ The frontend is built with:
 - **Shadcn/UI** components (based on Tailwind CSS)
 - **React Router** for navigation
 - **Axios** for API communication
+- **Playwright** for end-to-end testing
 
 ## Getting Started
 
@@ -37,10 +38,46 @@ npm run build
 - `src/lib/`: Utility functions
 - `src/pages/`: Page components
 - `src/styles/`: Global styles
+- `tests/`: End-to-end tests with Playwright
 
 ## API Integration
 
 The frontend communicates with the backend API at `http://173.212.254.228:3001` through a Vite proxy configuration. All API requests are prefixed with `/api/v1/`.
+
+## End-to-End Testing
+
+The application includes end-to-end tests using Playwright. These tests verify that the application works correctly from a user's perspective.
+
+### Running Tests
+
+To run the tests:
+
+1. Install Playwright browsers:
+```bash
+npx playwright install
+```
+
+2. Run the tests:
+```bash
+npm test
+```
+
+3. Run tests with UI mode:
+```bash
+npm run test:ui
+```
+
+4. Debug tests:
+```bash
+npm run test:debug
+```
+
+### Test Structure
+
+- `dashboard.spec.ts`: Tests for the dashboard page
+- `navigation.spec.ts`: Tests for navigation between pages
+
+For more details, see the [tests/README.md](tests/README.md) file.
 
 ## Troubleshooting
 

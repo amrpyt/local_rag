@@ -50,7 +50,7 @@ export default function ProcessPage() {
           { id: toastId }
         );
       } else {
-        toast.error(response.data.signal || 'An unknown error occurred.', { id: toastId });
+        toast.error(response.data?.signal || 'An unknown error occurred.', { id: toastId });
       }
     } catch (error) {
       console.error("Processing failed:", error);

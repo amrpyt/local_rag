@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { TestApiComponent } from '../components/TestApiComponent';
-import { DirectApiTest } from '../components/DirectApiTest';
+import DirectApiTest from '../components/DirectApiTest';
 import { useProject } from '../context/ProjectContext';
 import { fetchStatistics, Statistics } from '../api/db-client';
 import { DocumentTypeChart } from '../components/charts/DocumentTypeChart';

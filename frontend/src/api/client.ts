@@ -1,12 +1,8 @@
+// Placeholder for client.ts - will be reconfigured shortly
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/v1';
-
 const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: 'http://173.212.254.228:3001/api/v1'
 });
 
 export default apiClient; 

@@ -13,6 +13,7 @@ import IndexInfoPage from './pages/IndexInfoPage';
 import IndexPushPage from './pages/IndexPushPage';
 import SearchPage from './pages/SearchPage';
 import QAPage from './pages/QAPage';
+import AboutPage from './pages/AboutPage.jsx';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/index/push" element={<IndexPushPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/qa" element={<QAPage />} />
+                <Route path="/about" element={<AboutPage />} />
               </Routes>
             </main>
           </div>

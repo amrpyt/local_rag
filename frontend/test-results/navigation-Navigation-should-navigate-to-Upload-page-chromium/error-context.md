@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- heading "Mini-RAG" [level=1]
+- button "Collapse sidebar":
+  - img
+- navigation:
+  - link "Dashboard":
+    - /url: /
+    - img
+    - text: Dashboard
+  - link "Upload":
+    - /url: /upload
+    - img
+    - text: Upload
+  - link "Process":
+    - /url: /process
+    - img
+    - text: Process
+  - link "Search":
+    - /url: /search
+    - img
+    - text: Search
+  - link "Q&A":
+    - /url: /qa
+    - img
+    - text: Q&A
+  - link "Index":
+    - /url: /index
+    - img
+    - text: Index
+  - link "About":
+    - /url: /about
+    - img
+    - text: About
+- text: v1.0.0
+- banner:
+  - heading "Upload Documents" [level=1]
+  - img
+  - combobox [disabled]
+  - button "Create new project":
+    - img
+  - button "New Project"
+- main:
+  - heading "Upload Documents" [level=2]
+  - paragraph: Upload PDF documents to be processed and indexed for question answering.
+  - img
+  - paragraph: Please select a project from the header to begin uploading documents.
+  - button "Choose File" [disabled]
+  - img
+  - paragraph: Drag 'n' drop PDF files here, or click to select
+  - paragraph: (Only *.pdf files will be accepted)
+- region "Notifications alt+T"
+```
