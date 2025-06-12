@@ -1,131 +1,93 @@
 # Mini-RAG Frontend
 
-A React-based frontend for the Mini-RAG application, which implements a minimal Retrieval-Augmented Generation (RAG) system for question answering.
+This is the frontend for the Mini-RAG application, a minimal implementation of Retrieval-Augmented Generation (RAG) for question answering.
 
-## Features
+## Overview
 
-- Upload PDF documents to projects
-- Process documents into chunks for indexing
-- Index chunks into a vector database
-- Search indexed documents semantically
-- Ask questions and get answers using RAG
+The frontend is built with:
+- **React** with **Vite** for fast development
+- **Shadcn/UI** components (based on Tailwind CSS)
+- **React Router** for navigation
+- **Axios** for API communication
 
-## Getting Started: Deploying on a New PC or Server
+## Getting Started
 
-Follow these steps to set up and run the Mini-RAG frontend on a new machine:
-
-### 1. Prerequisites
-
-- **Node.js** (v18 or higher): [Download Node.js](https://nodejs.org/)
-- **npm** (comes with Node.js) or **yarn**
-- **Git** (to clone the repository): [Download Git](https://git-scm.com/)
-
-### 2. Clone the Repository
-
-Open a terminal and run:
-
-```bash
-git clone https://github.com/YOUR_USERNAME/mini-rag.git
-cd mini-rag/frontend
-```
-
-Replace `YOUR_USERNAME` with the correct GitHub username or use your own repository URL if different.
-
-### 3. Install Dependencies
-
-Install the required packages:
-
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-Or, if you prefer yarn:
-
+2. Run the development server:
 ```bash
-yarn install
+npm run dev
 ```
 
-### 4. Configure Environment (Optional)
-
-If you need to set custom environment variables (e.g., API base URL), create a `.env` file in the `frontend` directory. Example:
-
-```
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-By default, the frontend expects the backend API to be available at `http://localhost:8000`.
-
-### 5. Running the Frontend
-
-#### Development Mode
-
-Start the development server (with hot reload):
-
-```bash
-npm run dev -- --host 0.0.0.0
-```
-
-Or with yarn:
-
-```bash
-yarn dev
-```
-
-The app will be available at [http://localhost:3000](http://localhost:3000).
-
-#### Production Build
-
-To build the app for production:
-
+3. Build for production:
 ```bash
 npm run build
 ```
 
-Or with yarn:
+## Project Structure
 
-```bash
-yarn build
-```
-
-The build output will be in the `dist/` directory.
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
-Or with yarn:
-
-```bash
-yarn preview
-```
-
-### 6. Deploying the Production Build
-
-- Serve the contents of the `dist/` directory using any static file server (e.g., [serve](https://www.npmjs.com/package/serve), Nginx, Apache).
-- Example using `serve`:
-
-  ```bash
-  npm install -g serve
-  serve -s dist
-  ```
+- `src/api/`: API client and service functions
+- `src/components/`: UI components
+  - `layout/`: Layout components (header, sidebar, etc.)
+  - `ui/`: Shadcn/UI components
+- `src/context/`: React context providers
+- `src/lib/`: Utility functions
+- `src/pages/`: Page components
+- `src/styles/`: Global styles
 
 ## API Integration
 
-The frontend integrates with the Mini-RAG API endpoints as defined in the PRD:
+The frontend communicates with the backend API at `http://173.212.254.228:3001` through a Vite proxy configuration. All API requests are prefixed with `/api/v1/`.
 
-- Welcome Endpoint: `GET /api/v1/`
-- Upload Data: `POST /api/v1/data/upload/{project_id}`
-- Process Data: `POST /api/v1/data/process/{project_id}`
-- Index Push: `POST /api/v1/nlp/index/push/{project_id}`
-- Index Info: `GET /api/v1/nlp/index/info/{project_id}`
-- Index Search: `POST /api/v1/nlp/index/search/{project_id}`
-- Index Answer (RAG): `POST /api/v1/nlp/index/answer/{project_id}`
+## Troubleshooting
 
-## Technology Stack
+### API Connection Issues
 
-- React
-- Material UI
-- Vite
-- Axios for API requests 
+If you experience issues with API connectivity:
+
+1. Check the browser console for errors
+2. Verify that the Vite proxy is correctly configured in `vite.config.ts`
+3. Test direct API access using the diagnostic tools on the dashboard
+4. Check CORS settings if accessing the API directly
+
+### Project Selector Issues
+
+If the project selector is not working:
+
+1. Check that the API endpoint `/api/v1/projects/` is returning data
+2. Verify that the ProjectContext is properly initialized
+3. Check the browser console for errors in the project fetching logic
+4. Try using the SimpleProjectSelector component as a fallback
+
+### Diagnostic Tools
+
+The dashboard includes diagnostic tools to help troubleshoot API connectivity:
+
+- **TestApiComponent**: Tests API connectivity through the Axios client
+- **DirectApiTest**: Tests both direct and proxied API calls using the fetch API
+
+## Recent Fixes
+
+1. **Enhanced API Client:**
+   - Added request/response interceptors for better debugging
+   - Implemented timeout settings
+   - Added comprehensive error handling
+
+2. **Improved ProjectSelector Component:**
+   - Created both standard and simplified versions
+   - Added loading states and error handling
+   - Fixed state management issues
+   - Implemented localStorage persistence for selected project
+
+3. **Vite Proxy Configuration:**
+   - Enhanced proxy settings with detailed logging
+   - Added error handling for proxy failures
+   - Configured proper rewrite rules
+
+4. **State Management:**
+   - Updated ProjectContext to properly persist selected project
+   - Fixed dependency arrays in useEffect hooks
+   - Added proper state initialization from localStorage 

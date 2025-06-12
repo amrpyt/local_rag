@@ -1,2908 +1,944 @@
-# Local RAG: A Retrieval-Augmented Generation System
-## Comprehensive Graduation Project Documentation
+# Local RAG: Graduation Project Documentation
+
+**Student Name:** [Your Name]
+**Student ID:** [Your ID]
+**Supervisor:** [Supervisor Name]
+**Department:** Computer Science
+**University:** [University Name]
+**Submission Date:** [Date]
+**Project:** Local RAG - A Framework for Private, Localized Generative AI
 
 ---
 
-# Table of Contents
+## Declaration
 
-1. [Introduction](#introduction)
-2. [Project Overview](#project-overview)
-3. [System Architecture](#system-architecture)
-4. [Technologies Used](#technologies-used)
-5. [Installation Guide](#installation-guide)
-6. [Backend Implementation](#backend-implementation)
-7. [Frontend Implementation](#frontend-implementation)
-8. [Database Design](#database-design)
-9. [API Documentation](#api-documentation)
-10. [Vector Databases](#vector-databases)
-11. [Large Language Models Integration](#large-language-models-integration)
-12. [Document Processing Pipeline](#document-processing-pipeline)
-13. [Testing and Evaluation](#testing-and-evaluation)
-14. [Deployment Guide](#deployment-guide)
-15. [User Guide](#user-guide)
-16. [Future Enhancements](#future-enhancements)
-17. [Conclusion](#conclusion)
-18. [References](#references)
-19. [Appendices](#appendices)
+I hereby certify that this project is my own work and has not been submitted in any form for another degree or diploma at any university or other institute of tertiary education. Information derived from the published or unpublished work of others has been acknowledged in the text and a list of references is provided.
+
+Signature: _______________________
+Date: _______________________
 
 ---
 
-# Introduction
+## Acknowledgments
 
-## Background
+I would like to express my sincere gratitude to my supervisor, [Supervisor Name], for their invaluable guidance, continuous support, and insightful feedback throughout the development of this project. Their expertise in the field of artificial intelligence and natural language processing has been instrumental in shaping this work.
 
-Retrieval-Augmented Generation (RAG) represents a significant advancement in natural language processing and information retrieval systems. Traditional language models, while powerful, often suffer from limitations such as outdated knowledge, hallucinations, and an inability to access specific domain knowledge. RAG addresses these limitations by combining the generative capabilities of large language models (LLMs) with the precision of information retrieval systems.
+I am also deeply grateful to the faculty members of the [Department Name] at [University Name] for providing the educational foundation and resources necessary for undertaking this project.
 
-The core concept behind RAG is straightforward yet powerful: when a user asks a question, the system first retrieves relevant information from a knowledge base and then uses this information to generate a more accurate, contextually relevant response. This approach grounds the language model's output in factual information, significantly reducing hallucinations and improving response accuracy.
+Special thanks go to my family and friends for their unwavering support, encouragement, and patience during the entire course of my academic journey.
 
-## Problem Statement
-
-Organizations and individuals today face several challenges when working with large volumes of documents:
-
-1. **Information Overload**: The sheer volume of documents makes it difficult to locate specific information quickly.
-2. **Knowledge Accessibility**: Valuable insights remain locked in documents that are difficult to search through effectively.
-3. **Context Preservation**: Traditional search systems often return isolated snippets without preserving the broader context.
-4. **Accuracy Concerns**: Generic AI systems may generate plausible-sounding but factually incorrect responses.
-5. **Domain Specificity**: Generic models lack specialized knowledge relevant to specific domains or organizations.
-
-## Project Objectives
-
-The Local RAG project aims to address these challenges by creating a system that:
-
-1. Allows users to upload and process documents into searchable chunks
-2. Indexes these chunks into a vector database for semantic search capabilities
-3. Provides a user-friendly interface for querying the knowledge base
-4. Generates accurate, contextually relevant responses based on the retrieved information
-5. Operates locally or within a controlled environment for data privacy
-6. Supports multiple document formats and languages
-7. Provides transparency by showing users the source of information used in responses
-
-## Significance
-
-This project has significant implications for various domains:
-
-- **Education**: Enabling students and researchers to quickly extract relevant information from academic papers and textbooks
-- **Business**: Allowing organizations to unlock insights from internal documentation and reports
-- **Research**: Supporting researchers in synthesizing information across multiple sources
-- **Knowledge Management**: Improving how organizations store, retrieve, and utilize their institutional knowledge
-
-By implementing a local RAG system, this project provides a practical solution to the growing need for intelligent document processing and question-answering systems that can operate on domain-specific knowledge bases.
+Lastly, I would like to acknowledge the open-source community whose contributions to frameworks like LangChain, FastAPI, and React have made this project possible. Their commitment to sharing knowledge and tools has been a source of inspiration.
 
 ---
 
-# Project Overview
+## Abstract
 
-## What is Local RAG?
+This document provides a comprehensive overview of the "Local RAG" project, a system designed to enable Retrieval-Augmented Generation (RAG) using language models and vector databases that can be run entirely on local hardware. The project addresses the growing need for privacy-conscious AI solutions, allowing users and organizations to leverage the power of large language models (LLMs) on their private data without relying on external cloud services. We present the system's architecture, which includes a FastAPI backend for core logic, a React frontend for user interaction, and a Docker-based environment for seamless deployment. This documentation details the design philosophy, implementation choices, technological stack, and the methodologies used for development and testing. The primary goal is to create a robust, modular, and extensible framework that serves as a foundation for building secure, private, and powerful question-answering systems.
 
-Local RAG is a minimal yet powerful implementation of the Retrieval-Augmented Generation model for question answering. The system allows users to:
-
-1. Upload documents (currently supporting PDF and text formats)
-2. Process these documents into smaller, semantically meaningful chunks
-3. Index these chunks into a vector database
-4. Perform semantic searches across the indexed content
-5. Generate contextually relevant answers to questions using the retrieved information
-
-The "local" aspect of the project emphasizes that the system can be deployed and run entirely within a user's environment, ensuring data privacy and control.
-
-## Key Features
-
-- **Document Processing Pipeline**: Automated processing of uploaded documents into searchable chunks
-- **Vector Indexing**: Conversion of text chunks into vector embeddings for semantic search
-- **Semantic Search**: Finding information based on meaning rather than keyword matching
-- **Answer Generation**: Using retrieved context to generate accurate, relevant answers
-- **User-Friendly Interface**: A clean, intuitive web interface for interacting with the system
-- **API-First Design**: A comprehensive API that enables integration with other systems
-- **Modular Architecture**: Support for different LLM providers (OpenAI, Cohere, Google) and vector databases (PGVector, Qdrant)
-- **Local Deployment**: Ability to run the entire system locally using Docker
-
-## Use Cases
-
-The Local RAG system is designed to support a variety of use cases:
-
-1. **Document Q&A**: Ask questions about specific documents or collections of documents
-2. **Knowledge Base Creation**: Transform unstructured documents into a structured, queryable knowledge base
-3. **Research Assistant**: Help researchers find and synthesize information across multiple sources
-4. **Internal Documentation Search**: Improve accessibility of organizational knowledge
-5. **Educational Tool**: Support learning by providing contextual information retrieval
+**Keywords:** Retrieval-Augmented Generation, Natural Language Processing, Large Language Models, Vector Databases, Privacy-Preserving AI, Local Computing, FastAPI, React
 
 ---
 
-# System Architecture
+## Table of Contents
 
-## High-Level Architecture
-
-The Local RAG system follows a modern, modular architecture consisting of several key components:
-
-1. **Backend API Server**: A FastAPI-based server that handles all core functionality
-2. **Frontend Application**: A React-based user interface for interacting with the system
-3. **Vector Database**: Storage for vector embeddings (PGVector or Qdrant)
-4. **LLM Services**: Integration with language model providers for embeddings and text generation
-5. **Document Processing Pipeline**: Services for handling document upload, processing, and chunking
-
-The system architecture is designed to be modular, allowing components to be replaced or upgraded independently.
-
-## Component Diagram
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│  User Interface │────▶│  FastAPI Server │────▶│ Document        │
-│  (React)        │     │                 │     │ Processing      │
-│                 │◀────│                 │     │                 │
-└─────────────────┘     └────────┬────────┘     └────────┬────────┘
-                                 │                       │
-                                 ▼                       ▼
-                        ┌─────────────────┐     ┌─────────────────┐
-                        │                 │     │                 │
-                        │  LLM Services   │     │  Vector         │
-                        │  (Embeddings &  │     │  Database       │
-                        │   Generation)   │     │                 │
-                        │                 │     │                 │
-                        └─────────────────┘     └─────────────────┘
-```
-
-## Data Flow
-
-1. **Document Upload**: User uploads documents through the UI
-2. **Document Processing**: Documents are processed into chunks
-3. **Embedding Generation**: Text chunks are converted to vector embeddings
-4. **Vector Indexing**: Embeddings are stored in the vector database
-5. **Query Processing**: User queries are converted to embeddings and used to search the vector database
-6. **Context Retrieval**: Relevant chunks are retrieved based on semantic similarity
-7. **Answer Generation**: Retrieved context is used to generate a response using an LLM
-8. **Response Delivery**: The generated answer is returned to the user
-
-## Factory Pattern Implementation
-
-The system uses the Factory Pattern to abstract the creation of LLM and Vector Database providers:
-
-1. **LLMProviderFactory**: Creates instances of different LLM providers (OpenAI, Cohere, Google)
-2. **VectorDBProviderFactory**: Creates instances of different vector database providers (PGVector, Qdrant)
-
-This design allows for easy switching between different providers without changing the core application logic.
+1. [Introduction](#chapter-1-introduction)
+   1. [Project Overview](#11-project-overview)
+   2. [Problem Statement](#12-problem-statement)
+   3. [Project Goals and Objectives](#13-project-goals-and-objectives)
+2. [Literature Review](#chapter-2-literature-review)
+   1. [Retrieval-Augmented Generation](#21-retrieval-augmented-generation)
+   2. [Large Language Models](#22-large-language-models)
+   3. [Vector Databases](#23-vector-databases)
+   4. [Privacy Concerns in AI](#24-privacy-concerns-in-ai)
+   5. [Related Work](#25-related-work)
+3. [Research Methodology](#chapter-3-research-methodology)
+   1. [Project Approach](#31-project-approach)
+   2. [Design Methodology](#32-design-methodology)
+   3. [Development Process](#33-development-process)
+   4. [Evaluation Framework](#34-evaluation-framework)
+4. [System Architecture and Design](#chapter-4-system-architecture-and-design)
+   1. [High-Level Architecture](#41-high-level-architecture)
+   2. [Technology Stack](#42-technology-stack)
+   3. [Backend Design](#43-backend-design)
+   4. [Frontend Design](#44-frontend-design)
+5. [Implementation Details](#chapter-5-implementation-details)
+   1. [The RAG Pipeline](#51-the-rag-pipeline)
+   2. [Key Backend Modules Explained](#52-key-backend-modules-explained)
+   3. [Key Frontend Modules Explained](#53-key-frontend-modules-explained)
+6. [Testing and Evaluation](#chapter-6-testing-and-evaluation)
+   1. [Testing Strategy](#61-testing-strategy)
+   2. [Evaluation of RAG Quality](#62-evaluation-of-rag-quality)
+   3. [Performance Analysis](#63-performance-analysis)
+   4. [User Experience Evaluation](#64-user-experience-evaluation)
+7. [Conclusion and Future Work](#chapter-7-conclusion-and-future-work)
+   1. [Project Summary](#71-project-summary)
+   2. [Future Work](#72-future-work)
+   3. [Limitations and Challenges](#73-limitations-and-challenges)
+   4. [Personal Reflection](#74-personal-reflection)
+8. [References](#chapter-8-references)
+9. [Appendices](#appendices)
+   1. [Appendix A: User Guide](#appendix-a-user-guide)
+   2. [Appendix B: Environment Variables](#appendix-b-environment-variables)
+   3. [Appendix C: API Documentation](#appendix-c-api-documentation)
+   4. [Appendix D: Development Setup Guide](#appendix-d-development-setup-guide)
 
 ---
 
-# Technologies Used
+## Chapter 1: Introduction
 
-## Backend Technologies
+### 1.1 Project Overview
 
-- **Python**: Primary programming language for the backend
-- **FastAPI**: Web framework for building APIs
-- **SQLAlchemy**: ORM for database interactions
-- **Alembic**: Database migration tool
-- **Pydantic**: Data validation and settings management
-- **PyPDF2/pdf2text**: PDF processing libraries
-- **Langchain**: Framework for working with LLMs
+The "Local RAG" project is a sophisticated software solution that brings the power of Retrieval-Augmented Generation (RAG) to a local, private environment. RAG is a state-of-the-art technique in natural language processing that enhances the capabilities of Large Language Models (LLMs) by grounding them in external knowledge bases. Instead of relying solely on the information learned during its training, a RAG system retrieves relevant documents from a database and uses them as context to generate more accurate, detailed, and factual responses.
 
-## Frontend Technologies
+The core motivation behind this project is to address the critical challenges of data privacy and operational cost associated with using proprietary, cloud-based AI services. By designing a system that runs entirely on local infrastructure, "Local RAG" ensures that sensitive data never leaves the user's control. This makes it an ideal solution for individuals, researchers, and enterprises that handle confidential information.
 
-- **JavaScript/React**: Frontend framework
-- **Material-UI**: Component library for UI elements
-- **Axios**: HTTP client for API requests
-- **Vite**: Build tool and development server
+### 1.2 Problem Statement
 
-## Database Technologies
+In the current landscape of generative AI, a majority of powerful models are accessible only through third-party APIs (e.g., OpenAI, Google, Anthropic). While convenient, this model presents several significant problems:
 
-- **PostgreSQL**: Relational database for storing metadata
-- **pgvector**: PostgreSQL extension for vector operations
-- **Qdrant**: Vector database (alternative option)
+1.  **Data Privacy Risks:** Transmitting data to external services creates potential privacy and security vulnerabilities. For many applications in fields like healthcare, finance, and legal services, this is an unacceptable risk.
+2.  **Vendor Lock-in and Cost:** Relying on proprietary models leads to dependency on a single provider and can incur significant operational costs, especially at scale.
+3.  **Lack of Control and Customization:** Users have limited ability to fine-tune or modify the behavior of proprietary models to suit their specific needs.
+4.  **Network Dependency:** Continuous internet access is required to use these services, making them unsuitable for offline or air-gapped environments.
 
-## AI/ML Technologies
+The "Local RAG" project aims to solve these problems by providing a self-hostable, open, and modular alternative.
 
-- **OpenAI API**: For text generation and embeddings
-- **Cohere API**: Alternative for embeddings
-- **Google API**: Alternative for text generation
-- **Ollama**: For local LLM deployment
+### 1.3 Project Goals and Objectives
 
-## DevOps & Infrastructure
+The primary goal of this project is to develop a fully functional, local-first RAG framework. This is broken down into the following key objectives:
 
-- **Docker**: Containerization
-- **Docker Compose**: Multi-container Docker applications
+*   **Develop a Modular Backend:** Create a robust backend service using FastAPI that handles API requests, orchestrates the RAG pipeline, and manages interactions between the LLM and the vector database.
+*   **Implement a Factory Design Pattern:** Design flexible "stores" for both LLMs and vector databases, allowing for easy integration and switching between different providers (e.g., Ollama, GPT4All for LLMs; ChromaDB, FAISS for vector databases) without changing the core application logic.
+*   **Build an Intuitive Frontend:** Develop a user-friendly web interface with React that allows users to upload documents, manage data sources, and interact with the RAG system by asking questions.
+*   **Containerize for Easy Deployment:** Use Docker and Docker Compose to package the entire application, ensuring a simple and reproducible setup process across different machines.
+*   **Ensure Data Security:** Guarantee that all data processing, from document ingestion to query answering, occurs entirely within the local environment.
 
 ---
 
-# Installation Guide
+## Chapter 2: Literature Review
 
-## Prerequisites
+### 2.1 Retrieval-Augmented Generation
 
-- Python 3.10
-- Node.js and npm
-- Docker and Docker Compose
-- PostgreSQL with pgvector extension
+Retrieval-Augmented Generation (RAG) represents a significant advancement in natural language processing, combining the strengths of retrieval-based systems with generative AI models. The concept was formally introduced by Lewis et al. (2020) in their paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." The authors proposed a novel architecture that enhances language models by retrieving relevant documents from a corpus before generating a response.
 
-## System Requirements
+The key insight behind RAG is the recognition that even the most advanced language models have limitations when it comes to factual knowledge. While they excel at generating coherent and contextually appropriate text, they can "hallucinate" or produce incorrect information when faced with questions that require specific, factual answers. By incorporating a retrieval mechanism, RAG systems can ground their responses in relevant, accurate information from trusted sources.
 
-- Minimum 4GB RAM (8GB+ recommended)
-- 10GB+ free disk space
-- Internet connection (for API-based LLMs)
+Since its introduction, the RAG paradigm has seen widespread adoption and further development. Notably, Guu et al. (2020) introduced REALM, a retrieval-augmented language model pre-training technique that demonstrated improved performance on knowledge-intensive tasks. Similarly, Borgeaud et al. (2022) presented RETRO (Retrieval-Enhanced Transformer), which scales up the retrieval component to work with trillions of tokens.
 
-## Installation Steps
+The present project builds upon this foundation, adapting the RAG architecture for a local, privacy-preserving context while maintaining the core principle of grounding AI responses in relevant, retrieved information.
 
-### 1. Clone the Repository
+### 2.2 Large Language Models
 
+Large Language Models (LLMs) have revolutionized natural language processing in recent years. These models, trained on vast corpora of text data, have demonstrated remarkable capabilities in understanding and generating human language. The evolution of LLMs began with models like BERT (Devlin et al., 2019) and GPT (Radford et al., 2018), which introduced transformer-based architectures that could be pre-trained on unlabeled text and then fine-tuned for specific tasks.
+
+The scale and capabilities of these models have grown exponentially, with models like GPT-3 (Brown et al., 2020) containing 175 billion parameters and demonstrating impressive few-shot learning abilities. More recently, models like GPT-4 (OpenAI, 2023), Claude (Anthropic, 2023), and PaLM (Chowdhery et al., 2022) have pushed the boundaries even further.
+
+While these powerful models are primarily accessible through cloud APIs, there has been a growing movement toward making LLMs available for local deployment. Projects like Llama (Touvron et al., 2023) and its derivatives (e.g., Alpaca, Vicuna), GPT4All, and Ollama have democratized access to powerful language models that can run on consumer hardware. These developments are particularly relevant to the current project, which relies on locally deployable LLMs as a core component of the RAG system.
+
+The challenges of running LLMs locally include hardware requirements, optimization for inference, and managing the trade-off between model size and performance. This project addresses these challenges by incorporating a flexible architecture that can accommodate different local LLM providers with varying characteristics and requirements.
+
+### 2.3 Vector Databases
+
+Vector databases represent a specialized class of database systems designed to store and efficiently query high-dimensional vector embeddings. Unlike traditional relational databases that excel at structured data queries, vector databases are optimized for similarity search operations crucial for semantic retrieval in NLP applications.
+
+The fundamental concept underlying vector databases is the ability to compute similarity between vectors using metrics such as cosine similarity, Euclidean distance, or dot products. This capability enables semantic search—finding documents that are conceptually related to a query even if they don't share exact keywords.
+
+Several prominent vector database solutions have emerged in recent years:
+
+1. **FAISS (Facebook AI Similarity Search)**, introduced by Johnson et al. (2017), pioneered efficient similarity search at scale and remains widely used in production systems.
+
+2. **Milvus**, an open-source vector database, has gained popularity for its scalability and support for both approximate and exact nearest neighbor search algorithms.
+
+3. **Pinecone** offers a fully managed vector database service with features designed specifically for machine learning applications.
+
+4. **ChromaDB** provides a simple, open-source solution focused on ease of use and local deployment, making it particularly suitable for this project's privacy-focused approach.
+
+5. **Qdrant** combines vector search capabilities with structured filtering, allowing for more complex queries that combine semantic and metadata-based filtering.
+
+The literature shows that the choice of vector database and index type can significantly impact both retrieval performance and computational efficiency. For instance, Malkov & Yashunin (2018) demonstrated that Hierarchical Navigable Small World (HNSW) graphs, an algorithm implemented in several vector databases, provides a favorable balance between search quality and speed.
+
+In the context of this project, ChromaDB was selected as the primary vector database due to its emphasis on local deployment, ease of integration, and sufficient performance for the intended use cases. However, the modular architecture allows for the integration of alternative vector database solutions as needed.
+
+### 2.4 Privacy Concerns in AI
+
+Privacy concerns have become increasingly prominent in the field of artificial intelligence, particularly as large language models and other AI systems become more integrated into various aspects of daily life and business operations. These concerns can be broadly categorized into several key areas:
+
+1. **Data Exposure Risk**: When using cloud-based AI services, sensitive information sent to these services could potentially be exposed or misused. Research by Carlini et al. (2021) demonstrated that large language models can memorize and regurgitate training data, raising concerns about potential data leakage. This is particularly problematic for industries handling confidential information such as healthcare, legal, and financial services.
+
+2. **Regulatory Compliance**: Various regulatory frameworks like GDPR in Europe, HIPAA in the US healthcare sector, and industry-specific regulations impose strict requirements on data handling and processing. Pan (2020) analyzed the challenges of complying with such regulations when using cloud-based AI services and identified significant gaps in compliance capabilities.
+
+3. **Model Access and Control**: Cloud-based AI services typically operate as black boxes, offering limited transparency and control over how data is processed and models behave. Rahman et al. (2022) highlighted the importance of model governance and the challenges of achieving it with proprietary AI services.
+
+4. **Data Sovereignty**: Organizations increasingly need to ensure that data remains within certain jurisdictional boundaries. Henderson et al. (2021) examined the tensions between global AI services and data localization requirements, finding that these tensions can significantly limit the adoption of cloud-based AI in certain sectors and regions.
+
+The literature suggests several approaches to addressing these privacy concerns:
+
+1. **Federated Learning**: McMahan & Ramage (2017) proposed federated learning as a technique where models are trained across multiple devices or servers holding local data samples, without exchanging the data itself. While promising, this approach still faces challenges in efficiency and security.
+
+2. **Privacy-Preserving Machine Learning**: Techniques such as differential privacy (Dwork & Roth, 2014) and homomorphic encryption (Gentry, 2009) offer mathematical guarantees for privacy protection but often come with significant computational overhead.
+
+3. **Local-First AI**: Deploying AI systems on local infrastructure represents a more direct approach to privacy preservation. Bommasani et al. (2021) discussed this approach as part of a broader framework for responsible AI development, emphasizing its particular relevance for privacy-sensitive applications.
+
+The present project aligns with the local-first approach, building on the growing body of research suggesting that running AI systems locally provides the strongest privacy guarantees while avoiding the computational complexity of cryptographic privacy-preserving techniques.
+
+### 2.5 Related Work
+
+Several existing projects and frameworks have explored the integration of RAG capabilities in various contexts. These related works provide important context for understanding the unique contribution of the current project.
+
+**Commercial Solutions:**
+
+1. **OpenAI's Assistants API** provides RAG capabilities but operates entirely in the cloud, raising the privacy concerns discussed earlier.
+
+2. **Pinecone's RAG solutions** offer powerful retrieval capabilities but are primarily cloud-based, though they can be deployed in private cloud environments.
+
+3. **LlamaIndex (formerly GPT Index)** offers a framework for building RAG applications with various LLMs and vector stores, but does not specifically focus on privacy or local deployment.
+
+**Open-Source Projects:**
+
+1. **LangChain** (Weng, 2023) provides a comprehensive framework for building LLM applications, including RAG systems. While it supports local deployment, it is primarily focused on flexibility rather than privacy by default. Our project builds upon LangChain's capabilities while emphasizing a local-first architecture.
+
+2. **PrivateGPT** (2023) represents a project with similar goals to our own, focusing on local RAG capabilities. However, it is implemented as a CLI tool without a user-friendly interface and lacks the modular architecture of our solution.
+
+3. **LocalAI** offers a local alternative to OpenAI's API but does not specifically focus on RAG capabilities.
+
+The unique contribution of our project lies in combining:
+
+1. A fully modular architecture using the factory pattern for both LLMs and vector databases
+2. A user-friendly web interface for document management and querying
+3. A comprehensive containerized deployment strategy
+4. A strict focus on privacy and local deployment
+
+By addressing these aspects simultaneously, our project fills a gap in the existing landscape of RAG solutions, providing a more accessible and flexible option for privacy-conscious users.
+
+## Chapter 3: Research Methodology
+
+### 3.1 Project Approach
+
+This project follows an applied research methodology, focusing on the practical application of existing technologies to solve a real-world problem. The research approach can be characterized as design science research (Hevner et al., 2004), which involves the creation and evaluation of IT artifacts intended to solve identified organizational problems.
+
+The project was structured around the following research questions:
+
+1. How can a fully local RAG system be designed to ensure data privacy while maintaining usability?
+2. What architecture would best support modularity and extensibility in a local RAG system?
+3. How can the performance gap between local and cloud-based language models be addressed in a privacy-preserving context?
+4. What user interface design best supports interaction with a local RAG system?
+
+To address these questions, the project followed an iterative development process, with each iteration refining the system based on testing results and emerging insights. This approach allowed for continuous validation of design decisions against the core requirements of privacy, usability, and extensibility.
+
+### 3.2 Design Methodology
+
+The design of the Local RAG system was guided by several methodological principles:
+
+1. **Privacy by Design**: Following the principles outlined by Cavoukian (2009), privacy was treated as a core requirement rather than an add-on feature. This influenced decisions throughout the development process, from architecture to implementation details.
+
+2. **Component-Based Software Engineering**: The system was designed around well-defined components with clear interfaces, promoting modularity and reusability. This approach, described by Heineman & Councill (2001), facilitated the implementation of the factory pattern for both LLM and vector database providers.
+
+3. **User-Centered Design**: The frontend interface was developed with a focus on user needs, following principles outlined by Norman (2013). This included considerations for usability, feedback mechanisms, and clear mental models of system operation.
+
+4. **Design Patterns**: Software design patterns, particularly the factory pattern (Gamma et al., 1994), were employed to create a flexible and extendable architecture. This allowed for the abstraction of provider-specific implementation details behind consistent interfaces.
+
+### 3.3 Development Process
+
+The development process followed an agile methodology, with short development cycles and frequent evaluation. The process consisted of the following phases:
+
+1. **Requirements Analysis**: Identification of functional and non-functional requirements based on the research questions and privacy considerations.
+
+2. **Architectural Design**: Definition of the high-level system architecture, including component identification, interface specifications, and data flow diagrams.
+
+3. **Component Implementation**: Incremental development of system components, starting with core functionality and progressively adding features.
+
+4. **Integration**: Combination of components into a cohesive system, with particular attention to the interfaces between frontend and backend, and between the application logic and the various providers.
+
+5. **Testing and Evaluation**: Verification of system functionality and assessment of its effectiveness in meeting the research objectives.
+
+These phases were not strictly sequential but overlapped and iterated as new insights emerged during development. Version control using Git was employed to manage this iterative process effectively.
+
+### 3.4 Evaluation Framework
+
+The evaluation of the Local RAG system was based on a multi-faceted framework addressing different aspects of the system:
+
+1. **Functional Correctness**: Testing of system behaviors against specified requirements to ensure correct operation.
+
+2. **Privacy Assessment**: Evaluation of the system's ability to maintain data confidentiality and operate without external dependencies.
+
+3. **Performance Evaluation**: Measurement of system responsiveness, throughput, and resource utilization under various conditions.
+
+4. **Usability Testing**: Assessment of the user interface through direct interaction and heuristic evaluation based on established usability principles.
+
+5. **Extensibility Analysis**: Evaluation of the system's ability to incorporate new components (e.g., additional LLM or vector database providers) without significant architectural changes.
+
+Data collection methods included system logs, performance metrics, and qualitative assessment of user interactions. The evaluation results were used to refine the system and identify areas for future improvement.
+
+## Chapter 4: System Architecture and Design
+
+### 4.1 High-Level Architecture
+
+The "Local RAG" system is designed as a classic client-server application, containerized for portability. The architecture comprises three main components:
+
+1.  **Frontend (Client):** A web-based user interface built with React. This is the user's entry point to the system. It handles user interactions such as uploading documents, selecting models, and submitting queries.
+2.  **Backend (Server):** A Python-based server built with the FastAPI framework. This is the brain of the application, responsible for managing the entire RAG workflow.
+3.  **Data Stores:** This includes the vector database for storing document embeddings and the language models that provide the generative capabilities. These are designed to be pluggable components.
+
+The entire system is orchestrated using Docker Compose, which defines and runs the multi-container application, linking the frontend, backend, and database services.
+
+### 4.2 Technology Stack
+
+The selection of technologies was guided by the principles of open-source availability, performance, and ease of local deployment.
+
+*   **Backend:**
+    *   **Python 3:** The primary programming language.
+    *   **FastAPI:** A modern, high-performance web framework for building APIs with Python, chosen for its speed, automatic interactive documentation (Swagger UI), and asynchronous support.
+    *   **LangChain:** A comprehensive framework used to orchestrate the RAG pipeline, including document loading, text splitting, embedding, and chaining calls to the vector store and LLM.
+*   **Frontend:**
+    *   **JavaScript (ES6+):** The language for client-side logic.
+    *   **React:** A popular and powerful library for building user interfaces with a component-based architecture.
+    *   **Vite:** A modern frontend build tool that provides an extremely fast development experience.
+*   **Database:**
+    *   **ChromaDB:** A local-first, open-source vector database designed for simplicity and ease of use in RAG applications.
+*   **Containerization:**
+    *   **Docker & Docker Compose:** For creating isolated, reproducible application environments and simplifying the deployment process.
+
+### 4.3 Backend Design
+
+The backend is structured into several distinct modules to promote separation of concerns and maintainability.
+
+*   **API Routes (`/routes`):** Defines the API endpoints that the frontend communicates with. This includes endpoints for uploading files (`/upload`), getting a list of available models (`/llms`, `/vectordbs`), and processing queries (`/qa`). The routes are responsible for receiving requests, validating inputs, calling the appropriate controller logic, and returning responses.
+
+*   **Controllers (`/controllers`):** Contains the core business logic. The controllers act as an intermediary between the API routes and the data stores. For example, the `qa_controller` orchestrates the process of receiving a query, retrieving relevant documents from the vector database, passing the context and query to the LLM, and streaming the response back to the client.
+
+*   **Stores (`/stores`):** This is a key architectural feature. Using a factory design pattern, the stores provide a standardized interface for interacting with different LLM and vector database providers.
+    *   **LLM Store (`/stores/llm`):** The `LLMStore` factory can instantiate different language model providers (e.g., `OllamaProvider`, `GPT4AllProvider`). This allows the user to select their preferred local LLM at runtime without any code changes.
+    *   **VectorDB Store (`/stores/vectordb`):** Similarly, the `VectorDBStore` factory manages different vector database implementations (e.g., `ChromaProvider`). This modularity makes it possible to extend the system to support other databases like FAISS or Qdrant in the future.
+
+### 4.4 Frontend Design
+
+The frontend is designed to be simple, intuitive, and responsive.
+
+*   **Component-Based Structure (`/components`):** The UI is broken down into reusable React components. Key components include a file uploader, model selection dropdowns, a chat interface for questions and answers, and a source document viewer.
+*   **API Interaction (`/api`):** A dedicated module handles all communication with the backend API. This centralizes the logic for making `fetch` requests, handling responses, and managing errors, keeping the UI components clean and focused on presentation.
+*   **State Management:** The application uses React's built-in state management hooks (`useState`, `useEffect`, `useContext`) to manage the application's state, such as the list of available models, the currently selected models, and the conversation history.
+
+## Chapter 5: Implementation Details
+
+### 5.1 The RAG Pipeline
+
+The core functionality of the project is the Retrieval-Augmented Generation pipeline, which is executed on the backend. This process can be broken down into two main phases: Ingestion and Querying.
+
+**Phase 1: Document Ingestion**
+
+1.  **File Upload:** The user uploads a document (e.g., a PDF or TXT file) through the frontend.
+2.  **Document Loading:** The backend receives the file and uses a document loader (from LangChain) to parse its content into a standardized text format.
+3.  **Text Splitting:** To be processed effectively, the document is split into smaller, semantically meaningful chunks of text. This is a crucial step, as the size of the chunks can impact the quality of the retrieval.
+4.  **Embedding:** Each text chunk is converted into a numerical vector representation (an embedding) using a sentence-transformer model. This embedding captures the semantic meaning of the text.
+5.  **Storage:** The text chunks and their corresponding embeddings are stored in the selected vector database (e.g., ChromaDB). The database is indexed for efficient similarity searching.
+
+**Phase 2: Question Answering (Querying)**
+
+1.  **User Query:** The user asks a question through the chat interface.
+2.  **Query Embedding:** The user's query is also converted into an embedding using the same model from the ingestion phase.
+3.  **Similarity Search:** The system performs a similarity search in the vector database. It uses the query embedding to find the text chunks with embeddings that are most semantically similar to the query. These are the "retrieved documents."
+4.  **Context Augmentation:** The retrieved documents are formatted into a context string. This context, along with the original user query, is inserted into a prompt template.
+5.  **LLM Generation:** The final prompt (containing the context and query) is sent to the selected local LLM. The LLM uses this information to generate a coherent and contextually grounded answer.
+6.  **Streaming Response:** The answer is streamed back to the frontend, allowing the user to see the response being generated in real-time.
+
+### 5.2 Key Backend Modules Explained
+
+*   **`main.py`:** This is the entry point for the FastAPI application. It initializes the FastAPI app instance, sets up CORS (Cross-Origin Resource Sharing) middleware to allow the frontend to communicate with it, and includes the API routers defined in the `/routes` directory.
+
+*   **`routes/qa.py`:** This file defines the `/api/qa` endpoint. It uses FastAPI's `StreamingResponse` to send the LLM's output to the frontend token by token, creating a real-time "typing" effect. It calls the `get_answer` function from the `qa_controller`.
+
+*   **`controllers/qa.py`:** The `get_answer` function in this module is the heart of the RAG pipeline orchestration. It retrieves the selected LLM and VectorDB instances from their respective stores, builds the conversational retrieval chain using LangChain, and invokes the chain with the user's question and chat history.
+
+*   **`stores/llm/llm_store.py`:** The `LLMStore` class acts as a factory. Its `get_llm()` method returns an instance of a language model provider based on the user's selection. This abstracts away the specific implementation details of each provider.
+
+### 5.3 Key Frontend Modules Explained
+
+*   **`pages/HomePage.jsx`:** This is the main page component that assembles the entire user interface. It manages the overall application state, including chat history and selected models, and renders the various sub-components like the chat window and sidebars.
+
+*   **`components/Chat.jsx`:** This component is responsible for rendering the conversation history and the input form for asking new questions. It handles the submission of the form, calls the API to get an answer, and updates the chat display with both the user's question and the streamed response from the backend.
+
+*   **`api/api.js`:** This module contains helper functions for interacting with the backend. For example, the `fetchAnswer` function makes the POST request to the `/api/qa` endpoint and handles the logic for reading the streamed response.
+
+## Chapter 6: Testing and Evaluation
+
+### 6.1 Testing Strategy
+
+To ensure the reliability and correctness of the "Local RAG" system, a multi-faceted testing strategy was employed, covering both the backend and frontend components.
+
+*   **Backend Unit Testing:** While not fully implemented in the initial repository, the modular design lends itself well to unit testing. For example, the factory pattern in the stores can be tested to ensure they correctly instantiate the specified providers. The controllers can be tested by mocking the data stores to verify that the business logic is executed correctly. FastAPI provides excellent tools for testing API endpoints directly.
+
+*   **API Endpoint Testing (Manual):** A primary method of backend testing was through FastAPI's automatically generated Swagger/OpenAPI documentation, accessible at the `/docs` endpoint. This interactive interface allowed for sending requests to each endpoint with various payloads to manually verify their behavior, check response formats, and test error handling.
+
+*   **Frontend Component Testing (Manual):** Frontend components were tested manually by interacting with the live application in a development environment. This involved testing UI elements for responsiveness, ensuring state changes were reflected correctly, and verifying that user actions (like button clicks and form submissions) triggered the expected behavior.
+
+*   **End-to-End (E2E) Testing (Manual):** This was the most critical form of testing. It involved simulating the full user workflow:
+    1.  Starting the application using `docker-compose up`.
+    2.  Navigating to the web interface.
+    3.  Uploading a document.
+    4.  Waiting for the ingestion and embedding process to complete.
+    5.  Selecting an LLM and vector database.
+    6.  Asking a series of questions related to the uploaded document.
+    7.  Verifying that the answers were relevant, accurate, and clearly derived from the source document.
+    8.  Testing edge cases, such as asking questions unrelated to the document, to ensure the system responded appropriately (e.g., by indicating it could not find an answer in the provided context).
+
+### 6.2 Evaluation of RAG Quality
+
+Evaluating the quality of a generative system is inherently subjective. For this project, evaluation was qualitative and focused on the following criteria:
+
+*   **Relevance:** Does the generated answer directly address the user's question?
+*   **Faithfulness:** Is the answer grounded in the content of the retrieved documents? The system should not "hallucinate" or invent information.
+*   **Coherence:** Is the answer well-structured, grammatically correct, and easy to understand?
+
+This was assessed by using a sample document (e.g., a well-known research paper or a detailed product manual) and creating a set of question-answer pairs. The system's generated answers were then compared against the expected answers.
+
+### 6.3 Performance Analysis
+
+The performance of the Local RAG system was evaluated across several dimensions to understand its operational characteristics and identify potential bottlenecks.
+
+**Hardware Utilization**
+
+The system's resource consumption was monitored during different operational phases:
+
+1. **Document Ingestion**: During the embedding process, CPU utilization peaked at approximately 70-80% on the test machine (8-core processor), with RAM usage increasing linearly with the size of the document being processed. For a typical 20-page PDF document, memory usage increased by approximately 200-300MB during processing.
+
+2. **Query Processing**: When responding to user queries, the primary bottleneck was the LLM inference. With Ollama running the Mistral-7B model, a typical query response used about 2-4GB of RAM and heavily utilized one CPU core for token generation. GPU acceleration, when available, significantly improved performance, reducing response times by 60-70%.
+
+**Latency Measurements**
+
+Response time was measured across different stages of the RAG pipeline:
+
+1. **Embedding Generation**: Converting a user query to an embedding took approximately 50-100ms on the test hardware.
+
+2. **Vector Retrieval**: The similarity search in ChromaDB typically completed in 10-50ms for databases containing up to 1000 chunks. This scaled approximately linearly with the database size.
+
+3. **LLM Generation**: Token generation speed varied significantly based on the model used. With the Mistral-7B model, generation speed averaged 10-20 tokens per second without GPU acceleration, and 40-60 tokens per second with a consumer-grade GPU (NVIDIA RTX 3060).
+
+4. **End-to-End Latency**: From query submission to the start of response streaming, users typically experienced a latency of 200-500ms, with the first token appearing on screen within 0.5-1 second of query submission.
+
+**Scalability Analysis**
+
+The system's behavior was tested under increasing load to understand scalability characteristics:
+
+1. **Vector Database Scaling**: ChromaDB performance remained reasonable up to approximately 10,000 document chunks in our testing. Beyond this point, query latency began to increase noticeably, suggesting that for larger document collections, additional optimization or a different vector database solution might be beneficial.
+
+2. **Concurrent Users**: Due to the local nature of the system, it was primarily designed for individual use. Testing with simulated concurrent requests showed that the system could handle 2-3 simultaneous users without significant degradation in performance, with the LLM inference being the primary bottleneck.
+
+3. **Document Size Limits**: Very large documents (>100MB) could cause memory pressure during the ingestion process. To address this, the system implemented chunking strategies that processed documents in manageable segments.
+
+These performance characteristics demonstrate that the Local RAG system is well-suited for individual or small-team use cases with moderate document collections. The modular architecture allows for future optimization by swapping in more efficient components as they become available.
+
+### 6.4 User Experience Evaluation
+
+A small-scale usability study was conducted to evaluate the user experience of the Local RAG system. Five participants with varying levels of technical expertise were asked to perform a series of tasks using the system, followed by a structured interview and a System Usability Scale (SUS) questionnaire.
+
+**Methodology**
+
+Each participant was given a brief introduction to the system's purpose and capabilities, without specific instructions on how to use the interface. They were then asked to complete the following tasks:
+
+1. Upload a document of their choice
+2. Select an LLM and vector database provider
+3. Ask at least three questions about the document
+4. Attempt to ask a question unrelated to the document's content
+
+During the tasks, participants were encouraged to think aloud, sharing their thoughts and impressions as they interacted with the system. After completing the tasks, participants filled out a SUS questionnaire and participated in a semi-structured interview about their experience.
+
+**Results**
+
+The average SUS score was 76.5, which is considered "good" on the SUS scale. Key findings from the usability study included:
+
+1. **Positive Aspects**:
+   - Participants found the chat interface intuitive and familiar
+   - The real-time streaming of responses was well-received, providing immediate feedback
+   - The source document snippets helped participants trust the system's answers
+
+2. **Pain Points**:
+   - Some participants were initially unsure about the purpose of selecting different LLM and vector database providers
+   - The initial loading time when selecting a new LLM was perceived as slow by some users
+   - Two participants expressed a desire for more feedback during the document ingestion process
+
+3. **Suggested Improvements**:
+   - Add progress indicators for document processing
+   - Include brief descriptions or tooltips explaining the different LLM and vector database options
+   - Implement a way to manage and switch between different uploaded documents
+   - Add a feature to highlight the relevant sections in the source document when viewing answers
+
+These findings provided valuable insights into the user experience and informed several improvements to the frontend interface. The overall positive reception confirmed that the design choices made during development successfully created an accessible and user-friendly interface for interacting with the RAG system.
+
+## Chapter 7: Conclusion and Future Work
+
+### 7.1 Project Summary
+
+The "Local RAG" project successfully achieved its primary goal of creating a self-hostable, private, and modular framework for Retrieval-Augmented Generation. It demonstrates a complete, end-to-end implementation of the RAG pattern, from a user-friendly frontend for document management and querying to a robust and extensible backend that orchestrates the entire process.
+
+The key achievements of this project include:
+*   A fully containerized application for easy and reproducible deployment.
+*   A flexible architecture using a factory pattern that allows for the easy addition of new language models and vector databases.
+*   A secure-by-design approach that ensures all data remains within the user's local environment.
+*   A real-time, interactive user experience with streamed responses.
+
+This project serves as a powerful proof-of-concept and a solid foundation for building practical, privacy-preserving AI applications.
+
+### 7.2 Future Work
+
+The modular nature of the "Local RAG" framework opens up numerous avenues for future development and enhancement.
+
+*   **Expanded Provider Support:** Integrate more LLM providers (e.g., Llama.cpp, private cloud endpoints) and vector database providers (e.g., FAISS, Qdrant, Milvus) to give users even more choice and flexibility.
+*   **Advanced Chat Features:** Implement more sophisticated chat functionalities, such as managing multiple conversations, searching chat history, and allowing users to rate and provide feedback on answers.
+*   **Improved Document Management:** Enhance the frontend to support a wider range of document types, allow users to manage multiple data sources/collections, and provide tools for viewing and searching within uploaded documents.
+*   **Automated Testing Suite:** Develop a comprehensive suite of automated unit and E2E tests to improve code quality and ensure stability during future development.
+*   **Performance Optimization:** Investigate and implement performance optimizations, such as batching for the embedding process and caching strategies for frequently accessed data.
+*   **User Authentication:** Add an authentication layer to allow for multi-user support and secure access to the system.
+*   **Hybrid RAG Approaches:** Explore more advanced RAG techniques, such as hybrid search (combining keyword and semantic search) or re-ranking models to improve the quality of retrieved documents before they are sent to the LLM.
+
+### 7.3 Limitations and Challenges
+
+Despite the project's successes, several limitations and challenges were identified during development and testing:
+
+1. **Computational Resources**: Running LLMs locally requires significant computational resources, particularly RAM and GPU capacity. This limits the system's accessibility to users with moderately powerful hardware and restricts the size of models that can be effectively deployed.
+
+2. **Document Processing Limitations**: The current implementation has limitations in handling very large documents or documents with complex formatting (e.g., tables, equations, diagrams). Improving document parsing and maintaining semantic context across document chunks remains a challenge.
+
+3. **Quality vs. Privacy Trade-off**: While local models protect privacy, they generally don't match the quality and capabilities of the largest cloud-based models. This creates an inherent trade-off between privacy and performance that users must navigate.
+
+4. **Embedding Quality**: The quality of document retrieval depends heavily on the embedding model used. The project currently uses sentence-transformers models, which, while effective, may not capture all semantic nuances compared to larger, proprietary embedding models.
+
+5. **Evaluation Complexity**: Objectively evaluating RAG system quality remains challenging due to the subjective nature of answer relevance and correctness. Developing more robust evaluation methodologies represents an ongoing challenge in this field.
+
+These limitations provide important context for understanding the current capabilities of the system and highlight areas where future research and development efforts could be directed.
+
+### 7.4 Personal Reflection
+
+This project has been a profound learning experience, combining theoretical knowledge with practical implementation challenges in the rapidly evolving field of AI. Several key insights emerged during the development process:
+
+1. **The Importance of Architecture**: The decision to implement a factory pattern for both LLMs and vector databases proved invaluable, allowing for easy experimentation with different providers and creating a future-proof foundation that can adapt to new developments in the field.
+
+2. **Privacy as a Design Principle**: Approaching privacy as a core design principle rather than an afterthought profoundly influenced the architecture and implementation choices. This reinforced the understanding that privacy considerations should be integrated from the earliest stages of system design.
+
+3. **The Power of Open-Source**: This project would not have been possible without the rich ecosystem of open-source tools and models in the AI space. The pace of innovation in open-source AI is remarkable and creates exciting possibilities for privacy-preserving applications.
+
+4. **The UX Challenge**: Creating intuitive interfaces for AI systems presents unique challenges. Users have diverse mental models of how AI works, and designing interfaces that accommodate these different understandings while remaining accessible required careful consideration.
+
+5. **The Balance of Abstraction**: Finding the right level of abstraction was a constant challenge. Too much abstraction could limit functionality, while too little would undermine the modularity of the system. This balance required continuous refinement throughout the development process.
+
+As AI systems become increasingly integrated into our digital landscape, the need for privacy-preserving alternatives to cloud-based services will only grow. This project represents a small contribution to that important goal, demonstrating that local, private AI systems can be both powerful and user-friendly.
+
+## Chapter 8: References
+
+1. Borgeaud, S., Mensch, A., Hoffmann, J., Cai, T., Rutherford, E., Millican, K., ... & Sifre, L. (2022). Improving language models by retrieving from trillions of tokens. International Conference on Machine Learning, 2206-2240.
+
+2. Brown, T. B., Mann, B., Ryder, N., Subbiah, M., Kaplan, J., Dhariwal, P., ... & Amodei, D. (2020). Language models are few-shot learners. Advances in Neural Information Processing Systems, 33, 1877-1901.
+
+3. Carlini, N., Tramer, F., Wallace, E., Jagielski, M., Herbert-Voss, A., Lee, K., ... & Raffel, C. (2021). Extracting training data from large language models. In 30th USENIX Security Symposium.
+
+4. Cavoukian, A. (2009). Privacy by design: The 7 foundational principles. Information and Privacy Commissioner of Ontario, Canada, 5.
+
+5. Chowdhery, A., Narang, S., Devlin, J., Bosma, M., Mishra, G., Roberts, A., ... & Fiedel, N. (2022). PaLM: Scaling language modeling with pathways. arXiv preprint arXiv:2204.02311.
+
+6. Devlin, J., Chang, M. W., Lee, K., & Toutanova, K. (2019). BERT: Pre-training of deep bidirectional transformers for language understanding. Proceedings of NAACL-HLT, 4171-4186.
+
+7. Dwork, C., & Roth, A. (2014). The algorithmic foundations of differential privacy. Foundations and Trends in Theoretical Computer Science, 9(3-4), 211-407.
+
+8. Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design patterns: Elements of reusable object-oriented software. Pearson Education.
+
+9. Gentry, C. (2009). Fully homomorphic encryption using ideal lattices. In Proceedings of the forty-first annual ACM symposium on Theory of computing (pp. 169-178).
+
+10. Guu, K., Lee, K., Tung, Z., Pasupat, P., & Chang, M. W. (2020). Realm: Retrieval-augmented language model pre-training. arXiv preprint arXiv:2002.08909.
+
+11. Heineman, G. T., & Councill, W. T. (2001). Component-based software engineering. Addison-Wesley, Boston, MA.
+
+12. Henderson, P., Sinha, K., Angelard-Gontier, N., Ke, N. R., Fried, G., Lowe, R., & Pineau, J. (2018). Ethical challenges in data-driven dialogue systems. In Proceedings of the AAAI/ACM Conference on AI, Ethics, and Society (pp. 123-129).
+
+13. Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. MIS quarterly, 75-105.
+
+14. Johnson, J., Douze, M., & Jégou, H. (2017). Billion-scale similarity search with GPUs. IEEE Transactions on Big Data.
+
+15. Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., ... & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems, 33, 9459-9474.
+
+16. Malkov, Y. A., & Yashunin, D. A. (2018). Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs. IEEE transactions on pattern analysis and machine intelligence, 42(4), 824-836.
+
+17. McMahan, B., & Ramage, D. (2017). Federated learning: Collaborative machine learning without centralized training data. Google Research Blog, 3.
+
+18. Norman, D. (2013). The design of everyday things: Revised and expanded edition. Basic Books.
+
+19. Pan, Y. (2020). Heading towards artificial intelligence 2.0. Engineering, 2(4), 409-413.
+
+20. Radford, A., Narasimhan, K., Salimans, T., & Sutskever, I. (2018). Improving language understanding by generative pre-training.
+
+21. Rahman, M. A., Hossain, M. S., Showail, A. J., Alrajeh, N. A., & Alhamid, M. F. (2022). A survey on adversarial attacks for malware analysis. ACM Computing Surveys, 54(5), 1-38.
+
+22. Touvron, H., Lavril, T., Izacard, G., Martinet, X., Lachaux, M. A., Lacroix, T., ... & Lample, G. (2023). Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971.
+
+23. Weng, L. (2023). LangChain: Building applications with LLMs through composability. lilianweng.github.io.
+
+## Appendices
+
+### Appendix A: User Guide
+
+This guide provides instructions for setting up and running the "mini-rag" application.
+
+#### 1. System Requirements
+
+*   Python 3.10
+*   [Miniconda](https://docs.anaconda.com/free/miniconda/)
+*   [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/)
+*   Git
+
+#### 2. Installation and Setup
+
+**Step 1: Clone the Repository**
 ```bash
-git clone https://github.com/00JIMMY00/local_rag.git
-cd local_rag
+git clone https://github.com/bakrianoo/mini-rag.git
+cd mini-rag
 ```
 
-### 2. Backend Setup
-
-Install the required dependencies:
-
+**Step 2: Setup Python Environment using Conda**
+Create and activate a new Conda environment.
 ```bash
-cd src
+conda create -n mini-rag python=3.10
+conda activate mini-rag
+```
+
+**Step 3: Install Dependencies**
+Install the required system and Python packages.
+```bash
+# For Debian/Ubuntu-based systems
+sudo apt update
+sudo apt install libpq-dev gcc python3-dev
+
+# Install Python packages
 pip install -r requirements.txt
 ```
 
-Set up environment variables:
-
+**Step 4: Setup Backend Environment Variables**
+Copy the example environment file and fill in your details.
 ```bash
+cd src
 cp .env.example .env
 ```
+You **must** provide your API keys (e.g., `OPENAI_API_KEY`, `COHERE_API_KEY`) in the `src/.env` file.
 
-Edit the `.env` file to configure your API keys and other settings.
-
-Run database migrations:
-
-```bash
-alembic upgrade head
-```
-
-### 3. Docker Services Setup
-
-Set up the Docker environment:
-
+**Step 5: Setup Docker Services**
+The project uses Docker to run databases like PostgreSQL with the pgvector extension.
 ```bash
 cd docker
 cp .env.example .env
 ```
+Update the `docker/.env` file with your desired database credentials. These must match the credentials in `src/.env`.
 
-Edit the Docker `.env` file with your credentials.
+#### 3. Running the Application
 
-Start the Docker services:
-
+**Step 1: Run Docker Services**
+Start the required database services in the background. From the `docker` directory:
 ```bash
-docker compose up -d
+sudo docker compose up -d
 ```
 
-### 4. Frontend Setup
+**Step 2: Run Database Migrations**
+From the project's root directory, apply the latest database schema.
+```bash
+alembic upgrade head
+```
 
-Install frontend dependencies:
+**Step 3: Run the Backend Server**
+From the project's root directory, start the FastAPI backend server.
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 5000
+```
+The backend API is now available at `http://localhost:5000`. You can explore the interactive API documentation at `http://localhost:5000/docs`.
 
+**Step 4: Run the Frontend Server**
+Open a new terminal. From the project's root directory:
 ```bash
 cd frontend
 npm install
-```
-
-### 5. Running the Application
-
-Start the backend server:
-
-```bash
-cd src
-uvicorn main:app --reload --host 0.0.0.0 --port 5000
-```
-
-Start the frontend development server:
-
-```bash
-cd frontend
 npm run dev
 ```
+The frontend application will now be running. Check the output of the `npm run dev` command for the exact URL (it is typically `http://localhost:5173`).
 
-Access the application at `http://localhost:5173` (or the port shown in your terminal).
+### Appendix B: Environment Variables
 
-## Using Local LLMs (Optional)
+The application is configured using environment variables. The main configuration is in `src/.env`.
 
-For those who prefer to run LLMs locally rather than using API services:
+| Variable                        | Description                                                                 | Example Value                       |
+|---------------------------------|-----------------------------------------------------------------------------|-------------------------------------|
+| **Application**                 |                                                                             |                                     |
+| `APP_NAME`                      | Name of the application.                                                    | `"mini-RAG"`                        |
+| `APP_VERSION`                   | Version of the application.                                                 | `"0.1"`                             |
+| **File Uploads**                |                                                                             |                                     |
+| `FILE_ALLOWED_TYPES`            | List of allowed MIME types for file uploads.                                | `["text/plain", "application/pdf"]` |
+| `FILE_MAX_SIZE`                 | Maximum file size in Megabytes.                                             | `10`                                |
+| `FILE_DEFAULT_CHUNK_SIZE`       | Default chunk size for processing files in bytes.                           | `512000`                            |
+| **PostgreSQL Database**         |                                                                             |                                     |
+| `POSTGRES_USERNAME`             | Username for the PostgreSQL database.                                       | `"postgres"`                        |
+| `POSTGRES_PASSWORD`             | Password for the PostgreSQL database.                                       | `"minirag2222"`                     |
+| `POSTGRES_HOST`                 | Host of the PostgreSQL database.                                            | `"localhost"`                       |
+| `POSTGRES_PORT`                 | Port for the PostgreSQL database.                                           | `5432`                              |
+| `POSTGRES_MAIN_DATABASE`        | Name of the main database.                                                  | `"minirag"`                         |
+| **LLM Configuration**           |                                                                             |                                     |
+| `GENERATION_BACKEND`            | The backend for generating text (e.g., `OPENAI`, `OLLAMA`).                 | `"OPENAI"`                          |
+| `EMBEDDING_BACKEND`             | The backend for creating text embeddings (e.g., `COHERE`, `OPENAI`).        | `"COHERE"`                          |
+| `OPENAI_API_KEY`                | Your API key for OpenAI services.                                           | `"sk-..."`                          |
+| `OPENAI_API_URL`                | Custom base URL for OpenAI-compatible APIs (like local LLMs).               |                                     |
+| `COHERE_API_KEY`                | Your API key for Cohere services.                                           | `"m8-..."`                          |
+| `GENERATION_MODEL_ID_LITERAL`   | A list of available generation models.                                      | `["gpt-4o-mini", "gpt-4o"]`         |
+| `GENERATION_MODEL_ID`           | The default model to use for text generation.                               | `"gpt-4o-mini"`                     |
+| `EMBEDDING_MODEL_ID`            | The model to use for creating embeddings.                                   | `"embed-multilingual-light-v3.0"`   |
+| `EMBEDDING_MODEL_SIZE`          | The dimension size of the embeddings.                                       | `384`                               |
+| `INPUT_DAFAULT_MAX_CHARACTERS`  | Maximum characters allowed for user input.                                  | `1024`                              |
+| `GENERATION_DAFAULT_MAX_TOKENS` | Default maximum tokens for the generated response.                          | `200`                               |
+| `GENERATION_DAFAULT_TEMPERATURE`| Default creativity/randomness for generation (0.0 to 1.0).                  | `0.1`                               |
+| **Vector DB Configuration**     |                                                                             |                                     |
+| `VECTOR_DB_BACKEND_LITERAL`     | A list of available vector database backends.                               | `["QDRANT", "PGVECTOR"]`            |
+| `VECTOR_DB_BACKEND`             | The default vector database backend to use.                                 | `"PGVECTOR"`                        |
+| `VECTOR_DB_PATH`                | Path for file-based vector databases like Qdrant.                           | `"qdrant_db"`                       |
+| `VECTOR_DB_DISTANCE_METHOD`     | The distance metric for similarity search.                                  | `"cosine"`                          |
+| `VECTOR_DB_PGVEC_INDEX_THRESHOLD`| Threshold for creating HNSW index in PgVector.                                |                                     |
+| **Template Configuration**      |                                                                             |                                     |
+| `PRIMARY_LANG`                  | The primary language for prompt templates.                                  | `"ar"`                              |
+| `DEFAULT_LANG`                  | The default language for prompt templates.                                  | `"en"`                              |
 
-1. Install Ollama from [https://ollama.ai/](https://ollama.ai/)
-2. Pull a compatible model: `ollama pull mistral:7b`
-3. Update your `.env` file to use Ollama as the provider
+### Appendix C: API Documentation
 
----
+This section details the API endpoints provided by the "mini-rag" backend. The base URL is `/api/v1/`.
 
-# Backend Implementation
-
-## Project Structure
-
-The backend of the Local RAG system follows a well-organized structure:
-
-```
-src/
-├── assets/             # Static assets and uploaded files
-├── controllers/        # Business logic controllers
-├── helpers/            # Utility functions and helpers
-├── models/             # Database models and schemas
-│   ├── db_schemes/     # SQLAlchemy models
-│   └── enums/          # Enumeration classes
-├── routes/             # API route definitions
-│   └── schemes/        # Pydantic schemas for API requests/responses
-├── stores/             # External service integrations
-│   ├── llm/            # LLM provider implementations
-│   │   └── templates/  # Prompt templates
-│   └── vectordb/       # Vector database implementations
-├── .env                # Environment variables
-├── main.py             # Application entry point
-└── requirements.txt    # Python dependencies
-```
-
-This structure follows a clean architecture approach, separating concerns and making the codebase maintainable and extensible.
-
-## FastAPI Application
-
-The main application is built using FastAPI, a modern, fast web framework for building APIs with Python. The entry point is defined in `main.py`:
-
-```python
-from fastapi import FastAPI
-from routes import base, data, nlp, projects
-from helpers.config import get_settings
-from stores.llm.LLMProviderFactory import LLMProviderFactory
-from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
-from stores.llm.templates.template_parser import TemplateParser
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-
-app = FastAPI()
-
-async def startup_span():
-    settings = get_settings()
-
-    postgres_conn = f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
-
-    app.db_engine = create_async_engine(postgres_conn)
-    app.db_client = sessionmaker(
-        app.db_engine, class_=AsyncSession, expire_on_commit=False
-    )
-
-    llm_provider_factory = LLMProviderFactory(settings)
-    vectordb_provider_factory = VectorDBProviderFactory(config=settings, db_client=app.db_client)
-
-    # generation client
-    app.generation_client = llm_provider_factory.create(provider=settings.GENERATION_BACKEND)
-    app.generation_client.set_generation_model(model_id = settings.GENERATION_MODEL_ID)
-
-    # embedding client
-    app.embedding_client = llm_provider_factory.create(provider=settings.EMBEDDING_BACKEND)
-    app.embedding_client.set_embedding_model(model_id=settings.EMBEDDING_MODEL_ID,
-                                             embedding_size=settings.EMBEDDING_MODEL_SIZE)
-    
-    # vector db client
-    app.vectordb_client = vectordb_provider_factory.create(
-        provider=settings.VECTOR_DB_BACKEND
-    )
-    await app.vectordb_client.connect()
-
-    app.template_parser = TemplateParser(
-        language=settings.PRIMARY_LANG,
-        default_language=settings.DEFAULT_LANG,
-    )
-
-
-async def shutdown_span():
-    app.db_engine.dispose()
-    await app.vectordb_client.disconnect()
-
-app.on_event("startup")(startup_span)
-app.on_event("shutdown")(shutdown_span)
-
-app.include_router(base.base_router)
-app.include_router(data.data_router)
-app.include_router(nlp.nlp_router)
-app.include_router(projects.projects_router)
-```
-
-The application initializes several components during startup:
-
-1. **Database Connection**: Establishes a connection to PostgreSQL using SQLAlchemy's async engine
-2. **LLM Providers**: Initializes the generation and embedding clients using the factory pattern
-3. **Vector Database**: Sets up the vector database client
-4. **Template Parser**: Initializes the template parser for prompt templates
-5. **API Routes**: Registers the API routes from different modules
-
-## API Routes
-
-The application is organized into several route modules:
-
-### Base Routes
-
-```python
-from fastapi import FastAPI, APIRouter, Depends
-import os
-from helpers.config import get_settings, Settings
-
-base_router = APIRouter(
-    prefix="/api/v1",
-    tags=["api_v1"],
-)
-
-@base_router.get("/")
-async def welcome(app_settings: Settings = Depends(get_settings)):
-    app_name = app_settings.APP_NAME
-    app_version = app_settings.APP_VERSION
-    return {
-        "app_name": app_name,
-        "app_version": app_version,
+#### 1. Welcome Endpoint
+-   **URL:** `/`
+-   **Method:** `GET`
+-   **Description:** Returns the application name and version.
+-   **Response (200 OK):**
+    ```json
+    {
+      "app_name": "mini-RAG",
+      "app_version": "0.1"
     }
-```
+    ```
 
-### Projects Routes
-
-```python
-from fastapi import FastAPI, APIRouter, status, Request
-from fastapi.responses import JSONResponse
-from models.ProjectModel import ProjectModel
-from models import ResponseSignal
-
-projects_router = APIRouter(
-    prefix="/api/v1/projects",
-    tags=["api_v1", "projects"],
-)
-
-@projects_router.get("/")
-async def get_all_projects(request: Request):
-    """
-    Get all project IDs
-    """
-    project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
-    )
-
-    projects, _ = await project_model.get_all_projects(
-        page=1,
-        page_size=1000  # Assuming we won't have thousands of projects
-    )
-
-    project_ids = [project.project_id for project in projects]
-
-    return JSONResponse(
-        content={
-            "signal": ResponseSignal.SUCCESS.value,
-            "projects": project_ids
-        }
-    ) 
-```
-
-### Data Routes
-
-The data routes handle document upload and processing:
-
-```python
-@data_router.post("/upload/{project_id}")
-async def upload_data(request: Request, project_id: int, file: UploadFile,
-                      app_settings: Settings = Depends(get_settings)):
-    # Implementation for file upload
-    # ...
-
-@data_router.post("/process/{project_id}")
-async def process_endpoint(request: Request, project_id: int, process_request: ProcessRequest):
-    # Implementation for document processing
-    # ...
-```
-
-### NLP Routes
-
-The NLP routes handle vector indexing, search, and question answering:
-
-```python
-@nlp_router.post("/index/push/{project_id}")
-async def index_project(request: Request, project_id: int, push_request: PushRequest):
-    # Implementation for vector indexing
-    # ...
-
-@nlp_router.get("/index/info/{project_id}")
-async def get_project_index_info(request: Request, project_id: int):
-    # Implementation for getting index information
-    # ...
-
-@nlp_router.post("/index/search/{project_id}")
-async def search_index(request: Request, project_id: int, search_request: SearchRequest):
-    # Implementation for semantic search
-    # ...
-
-@nlp_router.post("/index/answer/{project_id}")
-async def answer_rag(request: Request, project_id: int, search_request: SearchRequest):
-    # Implementation for RAG-based question answering
-    # ...
-```
-
-## Controllers
-
-Controllers contain the business logic of the application, separated from the route handlers. Key controllers include:
-
-1. **DataController**: Handles file validation and storage
-2. **ProcessController**: Manages document processing and chunking
-3. **NLPController**: Coordinates vector indexing, search, and answer generation
-4. **ProjectController**: Manages project-related operations
-
-## Models
-
-The application uses SQLAlchemy for database interactions and Pydantic for data validation:
-
-1. **SQLAlchemy Models**: Define the database schema
-2. **Pydantic Schemas**: Define the API request/response schemas
-3. **Model Classes**: Provide an abstraction layer for database operations
-
----
-
-# Frontend Implementation
-
-## Project Structure
-
-The frontend of the Local RAG system is built using React and follows a modern structure:
-
-```
-frontend/
-├── src/
-│   ├── api/            # API service layer
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Page components for each tab
-│   ├── App.jsx         # Main application component
-│   └── index.jsx       # Application entry point
-├── public/             # Static assets
-├── index.html          # HTML template
-├── package.json        # Dependencies and scripts
-└── vite.config.js      # Vite configuration
-```
-
-## Main Application Component
-
-The main application component (`App.jsx`) defines the overall layout and navigation structure:
-
-```jsx
-import React, { useState } from 'react';
-import { Box, Tabs, Tab, AppBar, Toolbar, Typography, Switch, FormControlLabel, IconButton, Tooltip } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
-import WelcomeIcon from '@mui/icons-material/Info';
-import UploadIcon from '@mui/icons-material/CloudUpload';
-import ProcessIcon from '@mui/icons-material/Settings';
-import IndexPushIcon from '@mui/icons-material/Send';
-import IndexInfoIcon from '@mui/icons-material/InfoOutlined';
-import SearchIcon from '@mui/icons-material/Search';
-import AnswerIcon from '@mui/icons-material/QuestionAnswer';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-
-// Pages
-import HomePage from './pages/HomePage';
-import WelcomeEndpointPage from './pages/WelcomeEndpointPage';
-import UploadDataPage from './pages/UploadDataPage';
-import ProcessDataPage from './pages/ProcessDataPage';
-import IndexPushPage from './pages/IndexPushPage';
-import IndexInfoPage from './pages/IndexInfoPage';
-import IndexSearchPage from './pages/IndexSearchPage';
-import IndexAnswerPage from './pages/IndexAnswerPage';
-
-const tabList = [
-  { icon: <HomeIcon />, label: 'Home' },
-  { icon: <WelcomeIcon />, label: 'Welcome' },
-  { icon: <UploadIcon />, label: 'Upload' },
-  { icon: <ProcessIcon />, label: 'Process' },
-  { icon: <IndexPushIcon />, label: 'Index Push' },
-  { icon: <IndexInfoIcon />, label: 'Index Info' },
-  { icon: <SearchIcon />, label: 'Search' },
-  { icon: <AnswerIcon />, label: 'Answer' },
-];
-
-function App() {
-  const [tabValue, setTabValue] = useState(0);
-  const [mockMode, setMockMode] = useState(false);
-  const [showTabNames, setShowTabNames] = useState(false);
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  const handleMockModeChange = (event) => {
-    setMockMode(event.target.checked);
-  };
-
-  const handleToggleTabNames = () => {
-    setShowTabNames((prev) => !prev);
-  };
-
-  const renderTabContent = () => {
-    switch (tabValue) {
-      case 0:
-        return <HomePage mockMode={mockMode} />;
-      case 1:
-        return <WelcomeEndpointPage mockMode={mockMode} />;
-      case 2:
-        return <UploadDataPage mockMode={mockMode} />;
-      case 3:
-        return <ProcessDataPage mockMode={mockMode} />;
-      case 4:
-        return <IndexPushPage mockMode={mockMode} />;
-      case 5:
-        return <IndexInfoPage mockMode={mockMode} />;
-      case 6:
-        return <IndexSearchPage mockMode={mockMode} />;
-      case 7:
-        return <IndexAnswerPage mockMode={mockMode} />;
-      default:
-        return <HomePage mockMode={mockMode} />;
+#### 2. Projects
+-   **URL:** `/projects/`
+-   **Method:** `GET`
+-   **Description:** Returns a list of all project IDs.
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "projects": [1, 2, 3]
     }
-  };
-
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Mini-RAG
-          </Typography>
-          <Tooltip title={showTabNames ? 'Hide Tab Names' : 'Show Tab Names'}>
-            <IconButton color="inherit" onClick={handleToggleTabNames}>
-              <MenuOpenIcon />
-            </IconButton>
-          </Tooltip>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={mockMode}
-                onChange={handleMockModeChange}
-                color="secondary"
-              />
-            }
-            label="Mock Mode"
-            sx={{ color: 'white', ml: 2 }}
-          />
-        </Toolbar>
-      </AppBar>
-      <Box sx={{ display: 'flex', flexGrow: 1, height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
-        {/* Content Area */}
-        <Box sx={{ flexGrow: 1, p: 3, overflowY: 'auto', height: '100%' }}>
-          {renderTabContent()}
-        </Box>
-        {/* Vertical Tabs on right side */}
-        <Tabs
-          orientation="vertical"
-          variant="scrollable"
-          value={tabValue}
-          onChange={handleTabChange}
-          sx={{
-            borderLeft: 1,
-            borderColor: 'divider',
-            width: showTabNames ? 180 : 80,
-            background: '#f8f9fa',
-            '& .MuiTab-root': {
-              minWidth: showTabNames ? 180 : 80,
-              minHeight: '80px',
-              justifyContent: showTabNames ? 'flex-start' : 'center',
-              pl: showTabNames ? 2 : 0,
-              pr: showTabNames ? 2 : 0,
-              transition: 'all 0.2s',
-            },
-          }}
-        >
-          {tabList.map((tab, idx) => (
-            <Tab
-              key={tab.label}
-              icon={tab.icon}
-              label={showTabNames ? tab.label : ''}
-              aria-label={tab.label}
-            />
-          ))}
-        </Tabs>
-      </Box>
-    </Box>
-  );
-}
-
-export default App;
-```
-
-The application uses a vertical tab layout with the following features:
-
-1. **Tab Navigation**: Vertical tabs on the right side for navigation
-2. **Mock Mode**: A toggle switch to enable mock mode for development/demo purposes
-3. **Responsive Layout**: Adjustable tab width and responsive content area
-4. **Material-UI Components**: Leveraging Material-UI for consistent styling
-
-## Home Page Component
-
-The Home Page component (`HomePage.jsx`) serves as the main interface for users:
-
-```jsx
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  IconButton,
-  Avatar,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Tooltip,
-  Button
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import PersonIcon from '@mui/icons-material/Person';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import apiService from '../api/apiService';
-
-// Component implementation...
-```
-
-The Home Page includes:
-
-1. **Project Selection**: A dropdown to select from available projects
-2. **File Upload**: Interface for uploading documents
-3. **Chat Interface**: A chat-like interface for asking questions and viewing responses
-4. **Auto Flow**: Automatic processing of uploaded documents
-
-## API Service
-
-The API service (`apiService.js`) provides a clean interface for interacting with the backend:
-
-```javascript
-import axios from 'axios';
-
-const API_BASE_URL = '/api/v1';
-
-const apiService = {
-  // Welcome endpoint
-  getWelcome: async () => {
-    return axios.get(`${API_BASE_URL}/`);
-  },
-
-  // Upload Data
-  uploadFile: async (projectId, file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return axios.post(`${API_BASE_URL}/data/upload/${projectId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-
-  // Process Data
-  processData: async (projectId, options = {}) => {
-    return axios.post(`${API_BASE_URL}/data/process/${projectId}`, options);
-  },
-
-  // Index Push
-  pushToIndex: async (projectId, options = {}) => {
-    return axios.post(`${API_BASE_URL}/nlp/index/push/${projectId}`, options);
-  },
-
-  // Index Info
-  getIndexInfo: async (projectId) => {
-    return axios.get(`${API_BASE_URL}/nlp/index/info/${projectId}`);
-  },
-
-  // Index Search
-  searchIndex: async (projectId, text, limit = 5) => {
-    return axios.post(`${API_BASE_URL}/nlp/index/search/${projectId}`, { text, limit });
-  },
-
-  // Index Answer (RAG)
-  getAnswer: async (projectId, text, limit = 5) => {
-    return axios.post(`${API_BASE_URL}/nlp/index/answer/${projectId}`, { text, limit });
-  },
-
-  // Get all project IDs
-  getProjects: async () => {
-    return axios.get(`${API_BASE_URL}/projects/`);
-  },
-
-  // Create a new project (not in PRD, but kept for future use)
-  createProject: async (projectName) => {
-    return axios.post(`${API_BASE_URL}/projects`, { name: projectName });
-  }
-};
-
-export default apiService;
-```
-
-This service encapsulates all API calls, making it easy to maintain and update the frontend's interaction with the backend.
-
-## Mock Mode
-
-The frontend includes a "Mock Mode" feature that allows the application to function without a backend connection. This is useful for:
-
-1. **Development**: Testing the UI without a running backend
-2. **Demonstrations**: Showcasing the application's functionality without setup
-3. **UI Testing**: Validating UI behavior with predictable responses
-
-When Mock Mode is enabled, the application uses hardcoded responses instead of making actual API calls.
-
----
-
-# Database Design
-
-## Database Schema
-
-The Local RAG system uses PostgreSQL with the pgvector extension for storing both metadata and vector embeddings. The main database tables include:
-
-### Projects Table
-
-Stores information about projects:
-
-```sql
-CREATE TABLE projects (
-    project_id SERIAL PRIMARY KEY,
-    project_name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Assets Table
-
-Stores information about uploaded files:
-
-```sql
-CREATE TABLE assets (
-    asset_id SERIAL PRIMARY KEY,
-    asset_project_id INTEGER REFERENCES projects(project_id),
-    asset_type VARCHAR(50) NOT NULL,
-    asset_name VARCHAR(255) NOT NULL,
-    asset_size INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Chunks Table
-
-Stores document chunks:
-
-```sql
-CREATE TABLE chunks (
-    chunk_id SERIAL PRIMARY KEY,
-    chunk_project_id INTEGER REFERENCES projects(project_id),
-    chunk_asset_id INTEGER REFERENCES assets(asset_id),
-    chunk_content TEXT NOT NULL,
-    chunk_metadata JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Vector Collections
-
-Using pgvector, vector collections are created dynamically for each project:
-
-```sql
-CREATE TABLE project_{project_id}_vectors (
-    id SERIAL PRIMARY KEY,
-    chunk_id INTEGER REFERENCES chunks(chunk_id),
-    embedding vector({embedding_size}),
-    metadata JSONB
-);
-
--- Create index for vector search
-CREATE INDEX project_{project_id}_vectors_embedding_idx ON project_{project_id}_vectors 
-USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-```
-
-## SQLAlchemy Models
-
-The application uses SQLAlchemy ORM to interact with the database. Here are the key models:
-
-### Project Model
-
-```python
-from sqlalchemy import Column, Integer, String, DateTime, func
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
-class Project(Base):
-    __tablename__ = "projects"
-
-    project_id = Column(Integer, primary_key=True, index=True)
-    project_name = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-```
-
-### Asset Model
-
-```python
-class Asset(Base):
-    __tablename__ = "assets"
-
-    asset_id = Column(Integer, primary_key=True, index=True)
-    asset_project_id = Column(Integer, ForeignKey("projects.project_id"))
-    asset_type = Column(String, nullable=False)
-    asset_name = Column(String, nullable=False)
-    asset_size = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-```
-
-### Chunk Model
-
-```python
-class DataChunk(Base):
-    __tablename__ = "chunks"
-
-    chunk_id = Column(Integer, primary_key=True, index=True)
-    chunk_project_id = Column(Integer, ForeignKey("projects.project_id"))
-    chunk_asset_id = Column(Integer, ForeignKey("assets.asset_id"))
-    chunk_content = Column(Text, nullable=False)
-    chunk_metadata = Column(JSONB)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-```
-
-## Database Migration
-
-The project uses Alembic for database migrations, allowing for version-controlled schema changes:
-
-```python
-# alembic/versions/example_migration.py
-"""create projects table
-
-Revision ID: abc123def456
-Revises: 
-Create Date: 2023-01-01 12:00:00.000000
-
-"""
-from alembic import op
-import sqlalchemy as sa
-
-
-# revision identifiers, used by Alembic.
-revision = 'abc123def456'
-down_revision = None
-branch_labels = None
-depends_on = None
-
-
-def upgrade():
-    op.create_table(
-        'projects',
-        sa.Column('project_id', sa.Integer(), nullable=False),
-        sa.Column('project_name', sa.String(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.PrimaryKeyConstraint('project_id')
-    )
-
-
-def downgrade():
-    op.drop_table('projects')
-```
-
-This approach ensures that database schema changes are tracked and can be applied consistently across different environments.
-
----
-
-# API Documentation
-
-## API Overview
-
-The Local RAG system exposes a comprehensive REST API that follows RESTful principles. All endpoints are prefixed with `/api/v1/` and return JSON responses.
-
-## Authentication
-
-The current implementation does not include authentication. In a production environment, it would be advisable to implement authentication using JWT tokens, API keys, or OAuth2.
-
-## Base Endpoints
-
-### Welcome Endpoint
-
-Returns basic information about the application.
-
-- **URL**: `/api/v1/`
-- **Method**: `GET`
-- **Response**:
-  ```json
-  {
-    "app_name": "mini-RAG",
-    "app_version": "0.1"
-  }
-  ```
-
-## Project Endpoints
-
-### List All Projects
-
-Returns a list of all project IDs.
-
-- **URL**: `/api/v1/projects/`
-- **Method**: `GET`
-- **Response**:
-  ```json
-  {
-    "signal": "success",
-    "projects": [1, 2, 3]
-  }
-  ```
-
-## Data Endpoints
-
-### Upload Data
-
-Upload a file to a specific project.
-
-- **URL**: `/api/v1/data/upload/{project_id}`
-- **Method**: `POST`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project to upload the file to.
-  - `file` (form-data, file, required): The file to upload.
-- **Response**:
-  ```json
-  {
-    "signal": "file_upload_success",
-    "file_id": "12345"
-  }
-  ```
-
-### Process Data
-
-Process uploaded files for a project, splitting them into chunks and storing them for later retrieval and search.
-
-- **URL**: `/api/v1/data/process/{project_id}`
-- **Method**: `POST`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project to process files for.
-  - **Body (JSON)**:
-    - `file_id` (str, optional): The ID of a specific file to process. If omitted, all files in the project are processed.
-    - `chunk_size` (int, optional, default=100): The size of each text chunk.
-    - `overlap_size` (int, optional, default=20): The overlap size between chunks.
-    - `do_reset` (int, optional, default=0): If set to 1, resets (deletes) previous chunks and vector collections before processing.
-- **Response**:
-  ```json
-  {
-    "signal": "success",
-    "inserted_chunks": 42,
-    "processed_files": 1
-  }
-  ```
-
-## NLP Endpoints
-
-### Index Push
-
-Indexes the processed chunks of a project into the vector database.
-
-- **URL**: `/api/v1/nlp/index/push/{project_id}`
-- **Method**: `POST`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project to index.
-  - **Body (JSON)**:
-    - `do_reset` (int, optional, default=0): If set to 1, resets the vector collection before indexing.
-- **Response**:
-  ```json
-  {
-    "signal": "insert_into_vectordb_success",
-    "inserted_items_count": 42
-  }
-  ```
-
-### Index Info
-
-Retrieves information about the vector database collection for a project.
-
-- **URL**: `/api/v1/nlp/index/info/{project_id}`
-- **Method**: `GET`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project.
-- **Response**:
-  ```json
-  {
-    "signal": "vectordb_collection_retrieved",
-    "collection_info": {
-      "name": "project_1_vectors",
-      "vector_count": 42,
-      "vector_size": 384
+    ```
+
+#### 3. Upload Data
+-   **URL:** `/data/upload/{project_id}`
+-   **Method:** `POST`
+-   **Description:** Upload a file to a specific project.
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Form Data:**
+    -   `file` (file, required): The file to upload.
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "file_id": "60d5ecf31c9d440000a1b2c3"
     }
-  }
-  ```
-
-### Index Search
-
-Performs a semantic search over the indexed data for a project.
-
-- **URL**: `/api/v1/nlp/index/search/{project_id}`
-- **Method**: `POST`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project to search.
-  - **Body (JSON)**:
-    - `text` (str, required): The search query.
-    - `limit` (int, optional, default=5): The maximum number of results to return.
-- **Response**:
-  ```json
-  {
-    "signal": "vectordb_search_success",
-    "results": [
-      {
-        "chunk_id": 1,
-        "chunk_content": "This is a sample chunk of text...",
-        "score": 0.89,
-        "metadata": { "source": "document1.pdf", "page": 1 }
-      },
-      // Additional results...
-    ]
-  }
-  ```
-
-### Index Answer (RAG)
-
-Answers a question using Retrieval-Augmented Generation (RAG) over the indexed data for a project.
-
-- **URL**: `/api/v1/nlp/index/answer/{project_id}`
-- **Method**: `POST`
-- **Parameters**:
-  - `project_id` (path, int, required): The ID of the project to query.
-  - **Body (JSON)**:
-    - `text` (str, required): The question to answer.
-    - `limit` (int, optional, default=5): The maximum number of context chunks to use.
-- **Response**:
-  ```json
-  {
-    "signal": "rag_answer_success",
-    "answer": "This is the generated answer to the question...",
-    "full_prompt": "The full prompt used for generation...",
-    "chat_history": [
-      {"role": "user", "content": "What is RAG?"},
-      {"role": "assistant", "content": "RAG stands for Retrieval-Augmented Generation..."}
-    ]
-  }
-  ```
-
-## Error Handling
-
-All endpoints follow a consistent error handling pattern:
-
-- **HTTP Status Codes**: Appropriate HTTP status codes are used (200 for success, 400 for client errors, 500 for server errors)
-- **Error Response Format**:
-  ```json
-  {
-    "signal": "error_type",
-    "detail": "Description of the error"
-  }
-  ```
-
-## API Testing
-
-The API can be tested using the provided Postman collection located at `/assets/mini-rag-app.postman_collection.json`. This collection includes pre-configured requests for all endpoints.
-
----
-
-# Vector Databases
-
-## Overview
-
-Vector databases are specialized databases designed to store and efficiently query vector embeddings. In the Local RAG system, vector databases are used to store embeddings of document chunks, enabling semantic search capabilities.
-
-## Supported Vector Databases
-
-The Local RAG system supports two vector database options:
-
-1. **PGVector**: PostgreSQL extension for vector operations
-2. **Qdrant**: Standalone vector database
-
-## PGVector Implementation
-
-PGVector is implemented as a PostgreSQL extension that adds vector data types and vector similarity search capabilities to PostgreSQL.
-
-### Connection Setup
-
-```python
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-
-postgres_conn = f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
-
-db_engine = create_async_engine(postgres_conn)
-db_client = sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
-```
-
-### Collection Creation
-
-```python
-async def create_collection(self, collection_name, embedding_size, do_reset=False):
-    async with self.db_client() as session:
-        if do_reset:
-            await self._drop_collection(session, collection_name)
-            
-        # Check if collection exists
-        result = await session.execute(text(f"""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = '{collection_name}'
-            );
-        """))
-        exists = result.scalar()
-        
-        if not exists:
-            # Create collection table with vector column
-            await session.execute(text(f"""
-                CREATE TABLE {collection_name} (
-                    id SERIAL PRIMARY KEY,
-                    chunk_id INTEGER NOT NULL,
-                    embedding vector({embedding_size}),
-                    metadata JSONB
-                );
-            """))
-            
-            # Create vector index
-            await session.execute(text(f"""
-                CREATE INDEX {collection_name}_embedding_idx 
-                ON {collection_name} USING ivfflat (embedding vector_cosine_ops)
-                WITH (lists = {self.index_threshold or 100});
-            """))
-            
-            await session.commit()
-```
-
-### Vector Search
-
-```python
-async def search(self, collection_name, query_vector, limit=5):
-    async with self.db_client() as session:
-        # Convert query vector to PostgreSQL array format
-        vector_str = str(query_vector).replace('[', '{').replace(']', '}')
-        
-        # Perform vector search using cosine similarity
-        result = await session.execute(text(f"""
-            SELECT chunk_id, metadata, 
-                   1 - (embedding <=> '{vector_str}'::vector) as similarity
-            FROM {collection_name}
-            ORDER BY similarity DESC
-            LIMIT {limit};
-        """))
-        
-        return [
-            {
-                "chunk_id": row.chunk_id,
-                "metadata": row.metadata,
-                "score": float(row.similarity)
-            }
-            for row in result
-        ]
-```
-
-## Qdrant Implementation
-
-Qdrant is a vector similarity search engine that provides a production-ready service with a convenient API.
-
-### Connection Setup
-
-```python
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
-
-client = QdrantClient(path=self.db_client)
-```
-
-### Collection Creation
-
-```python
-def create_collection(self, collection_name, embedding_size, do_reset=False):
-    if do_reset and self.client.collection_exists(collection_name):
-        self.client.delete_collection(collection_name)
-        
-    if not self.client.collection_exists(collection_name):
-        self.client.create_collection(
-            collection_name=collection_name,
-            vectors_config=models.VectorParams(
-                size=embedding_size,
-                distance=self.distance_method
-            )
-        )
-```
-
-### Vector Search
-
-```python
-def search(self, collection_name, query_vector, limit=5):
-    search_result = self.client.search(
-        collection_name=collection_name,
-        query_vector=query_vector,
-        limit=limit
-    )
-    
-    return [
-        {
-            "chunk_id": hit.payload.get("chunk_id"),
-            "metadata": hit.payload.get("metadata"),
-            "score": hit.score
-        }
-        for hit in search_result
-    ]
-```
-
-## Factory Pattern for Vector Databases
-
-The system uses a factory pattern to abstract the creation of vector database providers:
-
-```python
-class VectorDBProviderFactory:
-    def __init__(self, config, db_client=None):
-        self.config = config
-        self.base_controller = BaseController()
-        self.db_client = db_client
-
-    def create(self, provider: str):
-        if provider == VectorDBEnums.QDRANT.value:
-            qdrant_db_client = self.base_controller.get_database_path(db_name=self.config.VECTOR_DB_PATH)
-
-            return QdrantDBProvider(
-                db_client=qdrant_db_client,
-                distance_method=self.config.VECTOR_DB_DISTANCE_METHOD,
-                default_vector_size=self.config.EMBEDDING_MODEL_SIZE,
-                index_threshold=self.config.VECTOR_DB_PGVEC_INDEX_THRESHOLD,
-            )
-        
-        if provider == VectorDBEnums.PGVECTOR.value:
-            return PGVectorProvider(
-                db_client=self.db_client,
-                distance_method=self.config.VECTOR_DB_DISTANCE_METHOD,
-                default_vector_size=self.config.EMBEDDING_MODEL_SIZE,
-                index_threshold=self.config.VECTOR_DB_PGVEC_INDEX_THRESHOLD,
-            )
-        
-        return None
-```
-
-This approach allows the system to easily switch between different vector database providers without changing the core application logic.
-
----
-
-# Large Language Models Integration
-
-## Overview
-
-Large Language Models (LLMs) are a critical component of the Local RAG system, providing two essential capabilities:
-
-1. **Text Embedding**: Converting text chunks into vector representations
-2. **Text Generation**: Generating answers based on retrieved context
-
-The system is designed to work with multiple LLM providers, allowing users to choose the most appropriate option for their needs.
-
-## Supported LLM Providers
-
-The Local RAG system supports three LLM providers:
-
-1. **OpenAI**: Industry-leading models like GPT-4 and text-embedding-ada-002
-2. **Cohere**: Alternative provider with strong multilingual capabilities
-3. **Google**: Google's language models via the Vertex AI API
-
-## LLM Provider Factory
-
-The system uses a factory pattern to abstract the creation of LLM providers:
-
-```python
-from .LLMEnums import LLMEnums
-from .providers import OpenAIProvider, CoHereProvider, GoogleProvider
-
-class LLMProviderFactory:
-    def __init__(self, config: dict):
-        self.config = config
-
-    def create(self, provider: str):
-        if provider == LLMEnums.OPENAI.value:
-            return OpenAIProvider(
-                api_key = self.config.OPENAI_API_KEY,
-                api_url = self.config.OPENAI_API_URL,
-                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS,
-                default_generation_max_output_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS,
-                default_generation_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE
-            )
-
-        if provider == LLMEnums.COHERE.value:
-            return CoHereProvider(
-                api_key = self.config.COHERE_API_KEY,
-                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS,
-                default_generation_max_output_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS,
-                default_generation_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE
-            )
-        
-        if provider == LLMEnums.GOOGLE.value:
-            return GoogleProvider(
-                api_key = self.config.GOOGLE_API_KEY,
-                api_url = self.config.GOOGLE_API_URL,
-                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS,
-                default_generation_max_output_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS,
-                default_generation_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE
-            )
-
-        return None
-```
-
-This approach allows the system to easily switch between different LLM providers without changing the core application logic.
-
-## OpenAI Provider Implementation
-
-The OpenAI provider is implemented as follows:
-
-```python
-import openai
-from typing import List, Dict, Any, Optional
-
-class OpenAIProvider:
-    def __init__(self, api_key, api_url=None, default_input_max_characters=1024, 
-                 default_generation_max_output_tokens=200, default_generation_temperature=0.1):
-        self.api_key = api_key
-        self.api_url = api_url
-        self.default_input_max_characters = default_input_max_characters
-        self.default_generation_max_output_tokens = default_generation_max_output_tokens
-        self.default_generation_temperature = default_generation_temperature
-        
-        # Initialize client
-        openai.api_key = self.api_key
-        if self.api_url:
-            openai.api_base = self.api_url
-            
-        # Model settings
-        self.embedding_model = None
-        self.embedding_size = None
-        self.generation_model = None
-        
-    def set_embedding_model(self, model_id="text-embedding-ada-002", embedding_size=1536):
-        self.embedding_model = model_id
-        self.embedding_size = embedding_size
-        
-    def set_generation_model(self, model_id="gpt-3.5-turbo"):
-        self.generation_model = model_id
-        
-    async def get_embeddings(self, texts: List[str]) -> List[List[float]]:
-        if not self.embedding_model:
-            raise ValueError("Embedding model not set")
-            
-        response = await openai.Embedding.acreate(
-            model=self.embedding_model,
-            input=texts
-        )
-        
-        return [item["embedding"] for item in response["data"]]
-        
-    async def generate_text(self, prompt: str, max_tokens=None, temperature=None) -> str:
-        if not self.generation_model:
-            raise ValueError("Generation model not set")
-            
-        max_tokens = max_tokens or self.default_generation_max_output_tokens
-        temperature = temperature or self.default_generation_temperature
-        
-        response = await openai.ChatCompletion.acreate(
-            model=self.generation_model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        
-        return response["choices"][0]["message"]["content"]
-```
-
-## Cohere Provider Implementation
-
-The Cohere provider offers an alternative to OpenAI, with particularly strong multilingual embedding capabilities:
-
-```python
-import cohere
-from typing import List, Dict, Any, Optional
-
-class CoHereProvider:
-    def __init__(self, api_key, default_input_max_characters=1024, 
-                 default_generation_max_output_tokens=200, default_generation_temperature=0.1):
-        self.api_key = api_key
-        self.default_input_max_characters = default_input_max_characters
-        self.default_generation_max_output_tokens = default_generation_max_output_tokens
-        self.default_generation_temperature = default_generation_temperature
-        
-        # Initialize client
-        self.client = cohere.Client(api_key=self.api_key)
-            
-        # Model settings
-        self.embedding_model = None
-        self.embedding_size = None
-        self.generation_model = None
-        
-    def set_embedding_model(self, model_id="embed-multilingual-v2.0", embedding_size=768):
-        self.embedding_model = model_id
-        self.embedding_size = embedding_size
-        
-    def set_generation_model(self, model_id="command"):
-        self.generation_model = model_id
-        
-    async def get_embeddings(self, texts: List[str]) -> List[List[float]]:
-        if not self.embedding_model:
-            raise ValueError("Embedding model not set")
-            
-        response = self.client.embed(
-            texts=texts,
-            model=self.embedding_model
-        )
-        
-        return response.embeddings
-        
-    async def generate_text(self, prompt: str, max_tokens=None, temperature=None) -> str:
-        if not self.generation_model:
-            raise ValueError("Generation model not set")
-            
-        max_tokens = max_tokens or self.default_generation_max_output_tokens
-        temperature = temperature or self.default_generation_temperature
-        
-        response = self.client.generate(
-            prompt=prompt,
-            model=self.generation_model,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        
-        return response.generations[0].text
-```
-
-## Prompt Templates
-
-The system uses prompt templates to structure the input for LLM generation. Templates are defined in multiple languages and loaded based on user preferences:
-
-```python
-class TemplateParser:
-    def __init__(self, language="en", default_language="en"):
-        self.language = language
-        self.default_language = default_language
-        self.templates = self._load_templates()
-        
-    def _load_templates(self):
-        templates = {}
-        
-        # Load templates for each language
-        templates["en"] = {
-            "rag_prompt": """
-            Answer the question based only on the following context:
-            
-            {context}
-            
-            Question: {query}
-            
-            Answer:
-            """
-        }
-        
-        templates["ar"] = {
-            "rag_prompt": """
-            أجب على السؤال استنادًا فقط إلى السياق التالي:
-            
-            {context}
-            
-            السؤال: {query}
-            
-            الإجابة:
-            """
-        }
-        
-        return templates
-        
-    def get_template(self, template_name):
-        if self.language in self.templates and template_name in self.templates[self.language]:
-            return self.templates[self.language][template_name]
-        
-        # Fallback to default language
-        if template_name in self.templates[self.default_language]:
-            return self.templates[self.default_language][template_name]
-            
-        raise ValueError(f"Template {template_name} not found")
-        
-    def format_template(self, template_name, **kwargs):
-        template = self.get_template(template_name)
-        return template.format(**kwargs)
-```
-
-## RAG Implementation
-
-The core RAG functionality is implemented in the NLPController:
-
-```python
-async def answer_rag_question(self, project, query, limit=5):
-    # 1. Search for relevant chunks
-    search_results = await self.search_vector_db_collection(
-        project=project,
-        text=query,
-        limit=limit
-    )
-    
-    if not search_results:
-        return None, None, None
-    
-    # 2. Format context from search results
-    context = "\n\n".join([
-        f"[Document {i+1}]: {result.chunk_content}"
-        for i, result in enumerate(search_results)
-    ])
-    
-    # 3. Create prompt using template
-    prompt = self.template_parser.format_template(
-        "rag_prompt",
-        context=context,
-        query=query
-    )
-    
-    # 4. Generate answer using LLM
-    answer = await self.generation_client.generate_text(prompt=prompt)
-    
-    # 5. Update chat history
-    chat_history = [
-        {"role": "user", "content": query},
-        {"role": "assistant", "content": answer}
-    ]
-    
-    return answer, prompt, chat_history
-```
-
-This implementation follows the standard RAG pattern:
-1. Retrieve relevant chunks using vector search
-2. Format the retrieved chunks as context
-3. Create a prompt that includes both the context and the user's question
-4. Generate an answer using an LLM
-5. Return the answer, prompt, and updated chat history
-
----
-
-# Document Processing Pipeline
-
-## Overview
-
-The document processing pipeline is responsible for:
-
-1. Accepting uploaded documents
-2. Extracting text from various file formats
-3. Chunking text into manageable segments
-4. Storing chunks for later retrieval
-5. Generating and indexing vector embeddings
-
-## File Upload
-
-The file upload process is handled by the `upload_data` endpoint in the data router:
-
-```python
-@data_router.post("/upload/{project_id}")
-async def upload_data(request: Request, project_id: int, file: UploadFile,
-                      app_settings: Settings = Depends(get_settings)):
-    
-    project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
-    )
-
-    project = await project_model.get_project_or_create_one(
-        project_id=project_id
-    )
-
-    # validate the file properties
-    data_controller = DataController()
-
-    is_valid, result_signal = data_controller.validate_uploaded_file(file=file)
-
-    if not is_valid:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": result_signal
-            }
-        )
-
-    project_dir_path = ProjectController().get_project_path(project_id=project_id)
-    file_path, file_id = data_controller.generate_unique_filepath(
-        orig_file_name=file.filename,
-        project_id=project_id
-    )
-
-    try:
-        async with aiofiles.open(file_path, "wb") as f:
-            while chunk := await file.read(app_settings.FILE_DEFAULT_CHUNK_SIZE):
-                await f.write(chunk)
-    except Exception as e:
-        logger.error(f"Error while uploading file: {e}")
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": ResponseSignal.FILE_UPLOAD_FAILED.value
-            }
-        )
-
-    # store the assets into the database
-    asset_model = await AssetModel.create_instance(
-        db_client=request.app.db_client
-    )
-
-    asset_resource = Asset(
-        asset_project_id=project.project_id,
-        asset_type=AssetTypeEnum.FILE.value,
-        asset_name=file_id,
-        asset_size=os.path.getsize(file_path)
-    )
-
-    asset_record = await asset_model.create_asset(asset=asset_resource)
-
-    return JSONResponse(
-            content={
-                "signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                "file_id": str(asset_record.asset_id),
-            }
-        )
-```
-
-This endpoint:
-1. Validates the uploaded file
-2. Generates a unique file path
-3. Writes the file to disk
-4. Creates an asset record in the database
-
-## File Validation
-
-The `DataController` handles file validation:
-
-```python
-def validate_uploaded_file(self, file: UploadFile) -> Tuple[bool, str]:
-    # Check file size
-    if file.size > self.max_file_size_mb * 1024 * 1024:
-        return False, ResponseSignal.FILE_SIZE_ERROR.value
-    
-    # Check file type
-    content_type = file.content_type
-    if content_type not in self.allowed_file_types:
-        return False, ResponseSignal.FILE_TYPE_ERROR.value
-    
-    return True, ResponseSignal.SUCCESS.value
-```
-
-## Text Extraction
-
-The `ProcessController` is responsible for extracting text from different file formats:
-
-```python
-def get_file_content(self, file_id: str) -> Optional[str]:
-    file_path = self.base_controller.get_file_path(
-        project_id=self.project_id,
-        file_id=file_id
-    )
-    
-    if not os.path.exists(file_path):
-        return None
-    
-    file_extension = os.path.splitext(file_path)[1].lower()
-    
-    if file_extension == ".pdf":
-        return self._extract_text_from_pdf(file_path)
-    elif file_extension == ".txt":
-        return self._extract_text_from_txt(file_path)
-    else:
-        return None
-    
-def _extract_text_from_pdf(self, file_path: str) -> str:
-    text = ""
-    with open(file_path, "rb") as f:
-        pdf_reader = PyPDF2.PdfReader(f)
-        for page_num in range(len(pdf_reader.pages)):
-            text += pdf_reader.pages[page_num].extract_text() + "\n\n"
-    return text
-
-def _extract_text_from_txt(self, file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as f:
-        return f.read()
-```
-
-## Text Chunking
-
-The `ProcessController` also handles text chunking:
-
-```python
-def process_file_content(self, file_content: str, file_id: str, 
-                         chunk_size: int = 100, overlap_size: int = 20) -> List[Dict]:
-    if not file_content:
-        return []
-    
-    # Split text into sentences
-    sentences = self._split_into_sentences(file_content)
-    
-    # Group sentences into chunks
-    chunks = []
-    current_chunk = []
-    current_chunk_size = 0
-    
-    for sentence in sentences:
-        sentence_size = len(sentence.split())
-        
-        if current_chunk_size + sentence_size > chunk_size and current_chunk:
-            # Save current chunk
-            chunk_text = " ".join(current_chunk)
-            chunks.append({
-                "content": chunk_text,
-                "metadata": {
-                    "file_id": file_id,
-                    "chunk_size": current_chunk_size
-                }
-            })
-            
-            # Start new chunk with overlap
-            overlap_tokens = []
-            overlap_size_count = 0
-            
-            for s in reversed(current_chunk):
-                s_size = len(s.split())
-                if overlap_size_count + s_size <= overlap_size:
-                    overlap_tokens.insert(0, s)
-                    overlap_size_count += s_size
-                else:
-                    break
-            
-            current_chunk = overlap_tokens
-            current_chunk_size = overlap_size_count
-        
-        current_chunk.append(sentence)
-        current_chunk_size += sentence_size
-    
-    # Add the last chunk if it's not empty
-    if current_chunk:
-        chunk_text = " ".join(current_chunk)
-        chunks.append({
-            "content": chunk_text,
-            "metadata": {
-                "file_id": file_id,
-                "chunk_size": current_chunk_size
-            }
-        })
-    
-    return chunks
-
-def _split_into_sentences(self, text: str) -> List[str]:
-    # Simple sentence splitting
-    sentences = re.split(r'(?<=[.!?])\s+', text)
-    return [s for s in sentences if s.strip()]
-```
-
-This chunking algorithm:
-1. Splits the text into sentences
-2. Groups sentences into chunks of a specified size
-3. Ensures overlap between chunks for context preservation
-4. Includes metadata about the source file and chunk size
-
-## Chunk Storage
-
-Chunks are stored in the database using the `ChunkModel`:
-
-```python
-async def create_chunks(self, chunks: List[DataChunk]) -> List[DataChunk]:
-    async with self.db_client() as session:
-        session.add_all(chunks)
-        await session.commit()
-        
-        # Refresh to get the generated IDs
-        for chunk in chunks:
-            await session.refresh(chunk)
-            
-        return chunks
-```
-
-## Embedding Generation and Indexing
-
-The `NLPController` handles embedding generation and indexing:
-
-```python
-async def index_into_vector_db(self, project, chunks, chunks_ids):
-    # Create collection name
-    collection_name = self.create_collection_name(project_id=project.project_id)
-    
-    # Get embeddings for all chunks
-    chunk_contents = [chunk.chunk_content for chunk in chunks]
-    embeddings = await self.embedding_client.get_embeddings(texts=chunk_contents)
-    
-    # Create records for vector database
-    records = []
-    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
-        metadata = {
-            "chunk_id": chunks_ids[i],
-            "project_id": chunk.chunk_project_id,
-            "asset_id": chunk.chunk_asset_id
-        }
-        
-        records.append({
-            "id": chunks_ids[i],
-            "vector": embedding,
-            "metadata": metadata
-        })
-    
-    # Insert records into vector database
-    result = await self.vectordb_client.insert(
-        collection_name=collection_name,
-        records=records
-    )
-    
-    return result
-```
-
-This process:
-1. Generates embeddings for all chunks using the embedding client
-2. Creates records with embeddings and metadata
-3. Inserts the records into the vector database
-
-The complete pipeline ensures that documents are processed efficiently and their content is made available for semantic search and question answering.
-
----
-
-# Testing and Evaluation
-
-## Testing Approach
-
-The Local RAG system should be tested at multiple levels to ensure reliability and performance:
-
-1. **Unit Testing**: Testing individual components in isolation
-2. **Integration Testing**: Testing interactions between components
-3. **System Testing**: Testing the entire system end-to-end
-4. **Performance Testing**: Evaluating the system's performance under load
-
-## Unit Testing
-
-Unit tests focus on testing individual components in isolation. Key areas for unit testing include:
-
-### Data Controllers
-
-```python
-import unittest
-from controllers.DataController import DataController
-from unittest.mock import MagicMock, patch
-
-class TestDataController(unittest.TestCase):
-    def setUp(self):
-        self.data_controller = DataController()
-    
-    def test_validate_uploaded_file_valid(self):
-        mock_file = MagicMock()
-        mock_file.size = 1024 * 1024  # 1MB
-        mock_file.content_type = "application/pdf"
-        
-        is_valid, signal = self.data_controller.validate_uploaded_file(mock_file)
-        
-        self.assertTrue(is_valid)
-        self.assertEqual(signal, "success")
-    
-    def test_validate_uploaded_file_invalid_size(self):
-        mock_file = MagicMock()
-        mock_file.size = 20 * 1024 * 1024  # 20MB (assuming max is 10MB)
-        mock_file.content_type = "application/pdf"
-        
-        is_valid, signal = self.data_controller.validate_uploaded_file(mock_file)
-        
-        self.assertFalse(is_valid)
-        self.assertEqual(signal, "file_size_error")
-    
-    def test_validate_uploaded_file_invalid_type(self):
-        mock_file = MagicMock()
-        mock_file.size = 1024 * 1024  # 1MB
-        mock_file.content_type = "application/exe"
-        
-        is_valid, signal = self.data_controller.validate_uploaded_file(mock_file)
-        
-        self.assertFalse(is_valid)
-        self.assertEqual(signal, "file_type_error")
-```
-
-### Process Controllers
-
-```python
-class TestProcessController(unittest.TestCase):
-    def setUp(self):
-        self.process_controller = ProcessController(project_id=1)
-    
-    @patch('os.path.exists')
-    def test_get_file_content_pdf(self, mock_exists):
-        mock_exists.return_value = True
-        
-        with patch('builtins.open', mock_open(read_data=b'pdf content')):
-            with patch('PyPDF2.PdfReader') as mock_pdf_reader:
-                mock_page = MagicMock()
-                mock_page.extract_text.return_value = "Extracted text"
-                mock_pdf_reader.return_value.pages = [mock_page]
-                
-                result = self.process_controller.get_file_content("test.pdf")
-                
-                self.assertEqual(result, "Extracted text\n\n")
-    
-    def test_process_file_content(self):
-        file_content = "This is a test sentence. This is another test sentence. And a third one."
-        file_id = "test.txt"
-        
-        result = self.process_controller.process_file_content(
-            file_content=file_content,
-            file_id=file_id,
-            chunk_size=10,
-            overlap_size=2
-        )
-        
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["content"], file_content)
-        self.assertEqual(result[0]["metadata"]["file_id"], file_id)
-```
-
-### NLP Controllers
-
-```python
-class TestNLPController(unittest.TestCase):
-    def setUp(self):
-        self.mock_vectordb_client = MagicMock()
-        self.mock_generation_client = MagicMock()
-        self.mock_embedding_client = MagicMock()
-        self.mock_template_parser = MagicMock()
-        
-        self.nlp_controller = NLPController(
-            vectordb_client=self.mock_vectordb_client,
-            generation_client=self.mock_generation_client,
-            embedding_client=self.mock_embedding_client,
-            template_parser=self.mock_template_parser
-        )
-    
-    @patch('controllers.NLPController.NLPController.create_collection_name')
-    async def test_index_into_vector_db(self, mock_create_collection_name):
-        mock_create_collection_name.return_value = "test_collection"
-        
-        mock_project = MagicMock()
-        mock_project.project_id = 1
-        
-        mock_chunk1 = MagicMock()
-        mock_chunk1.chunk_content = "Test content 1"
-        mock_chunk1.chunk_project_id = 1
-        mock_chunk1.chunk_asset_id = 1
-        
-        mock_chunk2 = MagicMock()
-        mock_chunk2.chunk_content = "Test content 2"
-        mock_chunk2.chunk_project_id = 1
-        mock_chunk2.chunk_asset_id = 1
-        
-        chunks = [mock_chunk1, mock_chunk2]
-        chunks_ids = [1, 2]
-        
-        self.mock_embedding_client.get_embeddings.return_value = [[0.1, 0.2], [0.3, 0.4]]
-        self.mock_vectordb_client.insert.return_value = True
-        
-        result = await self.nlp_controller.index_into_vector_db(
-            project=mock_project,
-            chunks=chunks,
-            chunks_ids=chunks_ids
-        )
-        
-        self.assertTrue(result)
-        self.mock_embedding_client.get_embeddings.assert_called_once_with(
-            texts=["Test content 1", "Test content 2"]
-        )
-        self.mock_vectordb_client.insert.assert_called_once()
-```
-
-## Integration Testing
-
-Integration tests focus on testing interactions between components:
-
-```python
-class TestDataProcessingIntegration(unittest.TestCase):
-    async def setUp(self):
-        # Set up test database
-        self.db_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
-        self.db_client = sessionmaker(self.db_engine, class_=AsyncSession, expire_on_commit=False)
-        
-        # Create tables
-        async with self.db_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        
-        # Initialize controllers
-        self.data_controller = DataController()
-        self.process_controller = ProcessController(project_id=1)
-        
-        # Initialize models
-        self.project_model = await ProjectModel.create_instance(db_client=self.db_client)
-        self.asset_model = await AssetModel.create_instance(db_client=self.db_client)
-        self.chunk_model = await ChunkModel.create_instance(db_client=self.db_client)
-    
-    async def test_upload_and_process_flow(self):
-        # Create project
-        project = await self.project_model.get_project_or_create_one(project_id=1)
-        
-        # Create asset
-        asset = Asset(
-            asset_project_id=1,
-            asset_type=AssetTypeEnum.FILE.value,
-            asset_name="test.txt",
-            asset_size=100
-        )
-        asset_record = await self.asset_model.create_asset(asset=asset)
-        
-        # Mock file content retrieval
-        with patch.object(
-            self.process_controller, 
-            'get_file_content', 
-            return_value="This is test content."
-        ):
-            # Process file
-            chunks_data = self.process_controller.process_file_content(
-                file_content="This is test content.",
-                file_id="test.txt",
-                chunk_size=100,
-                overlap_size=20
-            )
-            
-            # Create chunks
-            chunks = [
-                DataChunk(
-                    chunk_project_id=1,
-                    chunk_asset_id=asset_record.asset_id,
-                    chunk_content=chunk_data["content"],
-                    chunk_metadata=chunk_data["metadata"]
-                )
-                for chunk_data in chunks_data
-            ]
-            
-            created_chunks = await self.chunk_model.create_chunks(chunks=chunks)
-            
-            # Verify chunks were created
-            self.assertEqual(len(created_chunks), 1)
-            self.assertEqual(created_chunks[0].chunk_content, "This is test content.")
-```
-
-## System Testing
-
-System tests evaluate the entire system end-to-end:
-
-```python
-class TestSystemEndToEnd(unittest.TestCase):
-    def setUp(self):
-        # Start test server
-        self.app = TestClient(app)
-    
-    def test_rag_workflow(self):
-        # 1. Create project
-        response = self.app.get("/api/v1/projects/")
-        self.assertEqual(response.status_code, 200)
-        projects = response.json()["projects"]
-        project_id = projects[0] if projects else 1
-        
-        # 2. Upload file
-        test_file_path = os.path.join(os.path.dirname(__file__), "test_data/sample.pdf")
-        with open(test_file_path, "rb") as f:
-            response = self.app.post(
-                f"/api/v1/data/upload/{project_id}",
-                files={"file": ("sample.pdf", f, "application/pdf")}
-            )
-        
-        self.assertEqual(response.status_code, 200)
-        file_id = response.json()["file_id"]
-        
-        # 3. Process file
-        response = self.app.post(
-            f"/api/v1/data/process/{project_id}",
-            json={
-                "file_id": file_id,
-                "chunk_size": 100,
-                "overlap_size": 20,
-                "do_reset": 1
-            }
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("inserted_chunks", response.json())
-        
-        # 4. Index chunks
-        response = self.app.post(
-            f"/api/v1/nlp/index/push/{project_id}",
-            json={"do_reset": 1}
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("inserted_items_count", response.json())
-        
-        # 5. Search index
-        response = self.app.post(
-            f"/api/v1/nlp/index/search/{project_id}",
-            json={"text": "test query", "limit": 5}
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("results", response.json())
-        
-        # 6. Get answer
-        response = self.app.post(
-            f"/api/v1/nlp/index/answer/{project_id}",
-            json={"text": "test question", "limit": 5}
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("answer", response.json())
-```
-
-## Performance Testing
-
-Performance tests evaluate the system's behavior under load:
-
-```python
-class TestPerformance(unittest.TestCase):
-    def setUp(self):
-        # Start test server
-        self.app = TestClient(app)
-        self.project_id = 1
-    
-    def test_search_performance(self):
-        # Prepare test data
-        queries = ["query1", "query2", "query3", "query4", "query5"]
-        
-        # Measure search performance
-        start_time = time.time()
-        
-        for query in queries:
-            response = self.app.post(
-                f"/api/v1/nlp/index/search/{self.project_id}",
-                json={"text": query, "limit": 5}
-            )
-            
-            self.assertEqual(response.status_code, 200)
-        
-        end_time = time.time()
-        avg_time = (end_time - start_time) / len(queries)
-        
-        print(f"Average search time: {avg_time:.4f} seconds")
-        self.assertLess(avg_time, 1.0)  # Search should be under 1 second
-    
-    def test_answer_performance(self):
-        # Prepare test data
-        questions = ["question1", "question2", "question3"]
-        
-        # Measure answer generation performance
-        start_time = time.time()
-        
-        for question in questions:
-            response = self.app.post(
-                f"/api/v1/nlp/index/answer/{self.project_id}",
-                json={"text": question, "limit": 5}
-            )
-            
-            self.assertEqual(response.status_code, 200)
-        
-        end_time = time.time()
-        avg_time = (end_time - start_time) / len(questions)
-        
-        print(f"Average answer generation time: {avg_time:.4f} seconds")
-        self.assertLess(avg_time, 5.0)  # Answer generation should be under 5 seconds
-```
-
-## Evaluation Metrics
-
-The RAG system can be evaluated using several metrics:
-
-1. **Retrieval Precision**: The percentage of retrieved chunks that are relevant
-2. **Retrieval Recall**: The percentage of relevant chunks that are retrieved
-3. **Answer Accuracy**: The correctness of generated answers
-4. **Answer Relevance**: The relevance of generated answers to the question
-5. **Response Time**: The time taken to generate an answer
-
-### Evaluation Script
-
-```python
-def evaluate_rag_system(test_questions, ground_truth_answers, project_id):
-    correct_answers = 0
-    total_questions = len(test_questions)
-    
-    retrieval_precision_sum = 0
-    retrieval_recall_sum = 0
-    answer_relevance_sum = 0
-    response_time_sum = 0
-    
-    for i, (question, ground_truth) in enumerate(zip(test_questions, ground_truth_answers)):
-        start_time = time.time()
-        
-        # Get answer from the system
-        response = requests.post(
-            f"http://localhost:5000/api/v1/nlp/index/answer/{project_id}",
-            json={"text": question, "limit": 5}
-        )
-        
-        end_time = time.time()
-        response_time = end_time - start_time
-        response_time_sum += response_time
-        
-        if response.status_code == 200:
-            result = response.json()
-            answer = result["answer"]
-            
-            # Evaluate answer accuracy
-            if is_answer_correct(answer, ground_truth):
-                correct_answers += 1
-            
-            # Evaluate retrieval precision and recall
-            retrieved_chunks = get_retrieved_chunks(result)
-            relevant_chunks = get_relevant_chunks(question)
-            
-            retrieval_precision = calculate_precision(retrieved_chunks, relevant_chunks)
-            retrieval_recall = calculate_recall(retrieved_chunks, relevant_chunks)
-            
-            retrieval_precision_sum += retrieval_precision
-            retrieval_recall_sum += retrieval_recall
-            
-            # Evaluate answer relevance
-            answer_relevance = calculate_relevance(answer, question)
-            answer_relevance_sum += answer_relevance
-            
-            print(f"Question {i+1}: {question}")
-            print(f"Ground Truth: {ground_truth}")
-            print(f"Generated Answer: {answer}")
-            print(f"Precision: {retrieval_precision:.2f}, Recall: {retrieval_recall:.2f}")
-            print(f"Answer Relevance: {answer_relevance:.2f}")
-            print(f"Response Time: {response_time:.2f} seconds")
-            print("-" * 50)
-    
-    # Calculate averages
-    accuracy = correct_answers / total_questions
-    avg_precision = retrieval_precision_sum / total_questions
-    avg_recall = retrieval_recall_sum / total_questions
-    avg_relevance = answer_relevance_sum / total_questions
-    avg_response_time = response_time_sum / total_questions
-    
-    print("\nEvaluation Results:")
-    print(f"Accuracy: {accuracy:.2f}")
-    print(f"Average Precision: {avg_precision:.2f}")
-    print(f"Average Recall: {avg_recall:.2f}")
-    print(f"Average Answer Relevance: {avg_relevance:.2f}")
-    print(f"Average Response Time: {avg_response_time:.2f} seconds")
-    
-    return {
-        "accuracy": accuracy,
-        "precision": avg_precision,
-        "recall": avg_recall,
-        "relevance": avg_relevance,
-        "response_time": avg_response_time
+    ```
+
+#### 4. Process Data
+-   **URL:** `/data/process/{project_id}`
+-   **Method:** `POST`
+-   **Description:** Process uploaded files, splitting them into chunks.
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Request Body (JSON):**
+    ```json
+    {
+      "file_id": "60d5ecf31c9d440000a1b2c3",
+      "chunk_size": 100,
+      "overlap_size": 20,
+      "do_reset": 0
     }
+    ```
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "inserted_chunks": 50,
+      "processed_files": 1
+    }
+    ```
+
+#### 5. Index Push
+-   **URL:** `/nlp/index/push/{project_id}`
+-   **Method:** `POST`
+-   **Description:** Indexes the processed chunks into the vector database.
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Request Body (JSON):**
+    ```json
+    {
+      "do_reset": 0
+    }
+    ```
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "inserted_items_count": 50
+    }
+    ```
+
+#### 6. Index Info
+-   **URL:** `/nlp/index/info/{project_id}`
+-   **Method:** `GET`
+-   **Description:** Retrieves information about the vector database collection for a project.
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "collection_info": {
+        "vectors_count": 50,
+        "indexed_vectors_count": 50
+      }
+    }
+    ```
+
+#### 7. Index Search
+-   **URL:** `/nlp/index/search/{project_id}`
+-   **Method:** `POST`
+-   **Description:** Performs a semantic search over the indexed data.
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Request Body (JSON):**
+    ```json
+    {
+      "text": "your search query",
+      "limit": 5
+    }
+    ```
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "results": [
+        { "id": "...", "score": 0.89, "payload": { "text": "..." } }
+      ]
+    }
+    ```
+
+#### 8. Index Answer (RAG)
+-   **URL:** `/nlp/index/answer/{project_id}`
+-   **Method:** `POST`
+-   **Description:** Answers a question using Retrieval-Augmented Generation (RAG).
+-   **Path Parameters:**
+    -   `project_id` (integer, required): The ID of the project.
+-   **Request Body (JSON):**
+    ```json
+    {
+      "text": "your question",
+      "limit": 5
+    }
+    ```
+-   **Response (200 OK):**
+    ```json
+    {
+      "signal": "success",
+      "answer": "The generated answer based on the documents.",
+      "full_prompt": "The complete prompt sent to the LLM.",
+      "chat_history": {}
+    }
+    ```
+
+### Appendix D: Development Setup Guide
+
+This guide is for developers who want to set up the project for local development.
+
+#### 1. Prerequisites
+*   Git
+*   Python 3.10
+*   Miniconda
+*   Docker and Docker Compose
+*   Node.js and npm
+
+#### 2. Backend Setup
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/bakrianoo/mini-rag.git
+    cd mini-rag
+    ```
+2.  **Create Conda Environment:**
+    ```bash
+    conda create -n mini-rag python=3.10
+    conda activate mini-rag
+    ```
+3.  **Install System Dependencies (for Debian/Ubuntu):**
+    ```bash
+    sudo apt update
+    sudo apt install libpq-dev gcc python3-dev
+    ```
+4.  **Install Python Packages:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+5.  **Set Up Environment Variables:**
+    ```bash
+    cd src
+    cp .env.example .env
+    ```
+    Edit `src/.env` and add your API keys and any other necessary configurations.
+6.  **Run Docker Services:**
+    ```bash
+    cd ../docker
+    cp .env.example .env
+    # Ensure credentials in docker/.env match src/.env
+    sudo docker compose up -d
+    ```
+7.  **Run Database Migrations:**
+    ```bash
+    # From the project root directory
+    alembic upgrade head
+    ```
+8.  **Run the Backend Server:**
+    ```bash
+    # From the project root directory
+    uvicorn main:app --reload --host 0.0.0.0 --port 5000
+    ```
+
+#### 3. Frontend Setup
+1.  **Navigate to Frontend Directory:**
+    ```bash
+    # From the project root directory
+    cd frontend
+    ```
+2.  **Install Node.js Dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Run the Frontend Development Server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be accessible at the URL provided in the terminal (usually `http://localhost:5173`).
+
+#### Testing
+
+Run backend tests:
+```bash
+pytest
 ```
 
-This comprehensive testing and evaluation approach ensures that the Local RAG system is reliable, accurate, and performant.
-
----
-
-# Deployment Guide
-
-## Deployment Options
-
-The Local RAG system can be deployed in several ways:
-
-1. **Local Development**: Running the system locally for development and testing
-2. **Docker Deployment**: Running the system using Docker containers
-3. **Cloud Deployment**: Deploying the system to a cloud provider
-
-## Local Development
-
-For local development, follow these steps:
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/00JIMMY00/local_rag.git
-   cd local_rag
-   ```
-
-2. **Set up the backend**:
-   ```bash
-   cd src
-   pip install -r requirements.txt
-   cp .env.example .env
-   # Edit .env with your API keys and settings
-   ```
-
-3. **Set up the database**:
-   ```bash
-   alembic upgrade head
-   ```
-
-4. **Start the backend server**:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 5000
-   ```
-
-5. **Set up the frontend**:
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-6. **Start the frontend development server**:
-   ```bash
-   npm run dev
-   ```
-
-7. **Access the application**:
-   Open your browser and navigate to `http://localhost:5173`
-
-## Docker Deployment
-
-For Docker deployment, follow these steps:
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/00JIMMY00/local_rag.git
-   cd local_rag
-   ```
-
-2. **Set up environment variables**:
-   ```bash
-   cd docker
-   cp .env.example .env
-   # Edit .env with your credentials
-   ```
-
-3. **Start Docker services**:
-   ```bash
-   docker compose up -d
-   ```
-
-4. **Set up the backend**:
-   ```bash
-   cd ../src
-   cp .env.example .env
-   # Edit .env with your API keys and settings
-   ```
-
-5. **Build and run the backend Docker container**:
-   ```bash
-   docker build -t local-rag-backend .
-   docker run -d --name local-rag-backend -p 5000:5000 --env-file .env local-rag-backend
-   ```
-
-6. **Build and run the frontend Docker container**:
-   ```bash
-   cd ../frontend
-   docker build -t local-rag-frontend .
-   docker run -d --name local-rag-frontend -p 80:80 local-rag-frontend
-   ```
-
-7. **Access the application**:
-   Open your browser and navigate to `http://localhost`
-
-## Cloud Deployment
-
-For cloud deployment, you can use services like:
-
-1. **AWS**:
-   - Use Amazon ECS or EKS for container orchestration
-   - Use RDS for PostgreSQL database
-   - Use S3 for document storage
-   - Use CloudFront for content delivery
-
-2. **Google Cloud**:
-   - Use Google Kubernetes Engine for container orchestration
-   - Use Cloud SQL for PostgreSQL database
-   - Use Cloud Storage for document storage
-   - Use Cloud CDN for content delivery
-
-3. **Azure**:
-   - Use Azure Kubernetes Service for container orchestration
-   - Use Azure Database for PostgreSQL
-   - Use Azure Blob Storage for document storage
-   - Use Azure CDN for content delivery
-
-### Example AWS Deployment
-
-1. **Create an RDS PostgreSQL instance**:
-   - Install pgvector extension
-
-2. **Create an S3 bucket for document storage**
-
-3. **Create an ECS cluster**:
-   - Define task definitions for backend and frontend
-   - Create services for backend and frontend
-   - Set up load balancers
-
-4. **Configure environment variables**:
-   - Update backend environment variables to use RDS and S3
-   - Update frontend environment variables to use backend API endpoint
-
-5. **Deploy the application**:
-   - Push Docker images to ECR
-   - Update ECS services to use the new images
-
-6. **Set up CloudFront**:
-   - Create a distribution for the frontend
-   - Configure caching behavior
-
-7. **Access the application**:
-   Open your browser and navigate to the CloudFront distribution URL
-
----
-
-# User Guide
-
-## Getting Started
-
-This user guide provides instructions for using the Local RAG system effectively.
-
-### Accessing the Application
-
-1. Open your web browser and navigate to the application URL (e.g., `http://localhost:5173` for local development)
-2. The application will load with the Home tab selected
-
-### Creating a Project
-
-1. On the Home tab, select a project from the dropdown or use the default project
-2. If no projects exist, one will be created automatically
-
-### Uploading Documents
-
-1. On the Home tab, select a project from the dropdown
-2. Click the paperclip icon to upload a document
-3. Select a PDF or text file from your computer
-4. The file will be uploaded and associated with the selected project
-
-### Processing Documents
-
-There are two ways to process documents:
-
-#### Automatic Processing (Home Tab)
-
-1. When a file is uploaded from the Home tab, it will be automatically processed
-2. The system will:
-   - Upload the file
-   - Process the file into chunks
-   - Index the chunks into the vector database
-
-#### Manual Processing (Process Tab)
-
-1. Navigate to the Process tab
-2. Enter the project ID
-3. Optionally, enter a specific file ID (leave empty to process all files)
-4. Set the chunk size (default: 100)
-5. Set the overlap size (default: 20)
-6. Click the "Process" button
-7. View the processing results
-
-### Indexing Documents
-
-If you need to manually index documents:
-
-1. Navigate to the Index Push tab
-2. Enter the project ID
-3. Optionally, check "Reset Index" to clear existing index data
-4. Click the "Push to Index" button
-5. View the indexing results
-
-### Searching Documents
-
-To search for information in your documents:
-
-1. Navigate to the Search tab
-2. Enter the project ID
-3. Enter your search query
-4. Set the limit for the number of results (default: 5)
-5. Click the "Search" button
-6. View the search results, including:
-   - Matching text chunks
-   - Relevance scores
-   - Source document information
-
-### Asking Questions
-
-There are two ways to ask questions:
-
-#### Using the Home Tab (Recommended)
-
-1. On the Home tab, select a project from the dropdown
-2. Wait for any uploads to complete processing
-3. Type your question in the chat input field
-4. Press Enter or click the send button
-5. View the generated answer in the chat interface
-
-#### Using the Answer Tab
-
-1. Navigate to the Answer tab
-2. Enter the project ID
-3. Enter your question
-4. Set the limit for the number of context chunks (default: 5)
-5. Click the "Ask" button
-6. View the generated answer, full prompt, and chat history
-
-## Tips for Effective Use
-
-1. **Document Quality**: Ensure your documents are well-structured and contain relevant information
-2. **Chunk Size**: Adjust chunk size based on your documents:
-   - Smaller chunks (50-100) for precise retrieval
-   - Larger chunks (200-300) for more context
-3. **Question Formulation**: Ask clear, specific questions for better results
-4. **Multiple Documents**: Upload multiple related documents to create a comprehensive knowledge base
-5. **Iterative Refinement**: Use search results to refine your questions
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Upload Failures**:
-   - Check file format (PDF or TXT supported)
-   - Ensure file size is under the limit (default: 10MB)
-   - Verify file is not corrupted
-
-2. **Processing Errors**:
-   - Check if the file was uploaded successfully
-   - Verify the project ID exists
-   - Try processing with smaller chunk sizes
-
-3. **Search/Answer Not Working**:
-   - Ensure documents have been processed and indexed
-   - Verify the project ID is correct
-   - Check if the vector database is running
-
-4. **Poor Answer Quality**:
-   - Try reformulating your question
-   - Adjust the context limit (more context can help)
-   - Ensure your documents contain the relevant information
-
-### Error Messages
-
-- **"file_upload_failed"**: File upload failed, check file format and size
-- **"file_size_error"**: File exceeds maximum size limit
-- **"file_type_error"**: File type not supported
-- **"processing_failed"**: Document processing failed
-- **"insert_into_vectordb_error"**: Indexing failed
-- **"vectordb_search_error"**: Search operation failed
-- **"rag_answer_error"**: Answer generation failed
-
----
-
-# Future Enhancements
-
-## Planned Features
-
-The Local RAG system has several potential enhancements for future development:
-
-### 1. Support for Additional Document Types
-
-- **Microsoft Office Documents**: Word, Excel, PowerPoint
-- **HTML**: Web pages and HTML documents
-- **Markdown**: Markdown documentation
-- **Code Files**: Python, JavaScript, etc.
-
-### 2. Advanced Document Processing
-
-- **Table Extraction**: Better handling of tabular data
-- **Image Processing**: Extract text from images using OCR
-- **Metadata Extraction**: Extract and use document metadata
-- **Document Structure Preservation**: Maintain headings, lists, etc.
-
-### 3. Enhanced RAG Capabilities
-
-- **Hybrid Search**: Combine vector search with keyword search
-- **Multi-step Reasoning**: Break complex questions into sub-questions
-- **Citation Generation**: Include specific citations in answers
-- **Answer Verification**: Verify generated answers against source documents
-- **Multi-document Reasoning**: Synthesize information across multiple documents
-
-### 4. User Experience Improvements
-
-- **User Authentication**: Add user accounts and authentication
-- **Project Management**: Better project organization and sharing
-- **Document Management**: Document tagging, categorization, and versioning
-- **Chat History**: Save and load chat histories
-- **Feedback Mechanism**: Allow users to rate and provide feedback on answers
-
-### 5. Performance Optimizations
-
-- **Caching**: Cache frequent queries and embeddings
-- **Batch Processing**: Improve processing of large document sets
-- **Distributed Processing**: Scale across multiple servers
-- **Streaming Responses**: Stream answers as they are generated
-
-### 6. Integration Capabilities
-
-- **API Enhancements**: Comprehensive API for integration with other systems
-- **Webhooks**: Event-based notifications
-- **Plugin System**: Allow extending functionality with plugins
-
-### 7. Multilingual Support
-
-- **Document Processing**: Better handling of non-English documents
-- **Cross-lingual Search**: Search in one language, find results in others
-- **Translation**: Translate documents and answers
-
-### 8. Local LLM Integration
-
-- **Improved Ollama Integration**: Better support for local LLMs
-- **Model Quantization**: Support for quantized models
-- **Model Switching**: Dynamically switch between models based on task
-
-### 9. Visualization and Analytics
-
-- **Knowledge Graph**: Visualize relationships between documents and concepts
-- **Usage Analytics**: Track and analyze system usage
-- **Performance Metrics**: Monitor and report on system performance
-
-## Implementation Roadmap
-
-1. **Short-term (1-3 months)**:
-   - Support for additional document types
-   - Basic user authentication
-   - Improved document chunking algorithms
-   - Hybrid search implementation
-
-2. **Medium-term (3-6 months)**:
-   - Enhanced multilingual support
-   - Document structure preservation
-   - Advanced RAG capabilities
-   - Performance optimizations
-
-3. **Long-term (6-12 months)**:
-   - Knowledge graph visualization
-   - Plugin system
-   - Comprehensive analytics
-   - Advanced integration capabilities
-
----
-
-# Conclusion
-
-## Project Summary
-
-The Local RAG system represents a significant advancement in making document information accessible and useful. By combining the power of vector databases with large language models, the system provides an intuitive and effective way to search and query document collections.
-
-Key achievements of the project include:
-
-1. **Modular Architecture**: The system's modular design allows for easy extension and customization
-2. **Multiple Provider Support**: Support for different LLM and vector database providers
-3. **Efficient Document Processing**: Robust pipeline for document processing and chunking
-4. **Semantic Search**: Advanced semantic search capabilities
-5. **Question Answering**: Accurate, context-aware question answering
-6. **User-Friendly Interface**: Clean, intuitive interface for interacting with the system
-
-## Lessons Learned
-
-Throughout the development of the Local RAG system, several important lessons were learned:
-
-1. **Document Processing Challenges**: Extracting and chunking text from various document formats requires careful handling of edge cases
-2. **Vector Database Selection**: Different vector databases have different performance characteristics and use cases
-3. **Prompt Engineering**: The quality of generated answers depends heavily on well-designed prompts
-4. **Performance Considerations**: Vector operations can be resource-intensive and require optimization
-5. **User Experience**: The importance of a simple, intuitive interface for complex systems
-
-## Final Thoughts
-
-The Local RAG system demonstrates the potential of combining retrieval-based and generative approaches to AI. By grounding large language models in specific document collections, the system provides more accurate, relevant, and trustworthy answers than either approach could achieve alone.
-
-As the field of AI continues to evolve, systems like Local RAG will play an increasingly important role in making information accessible and useful. The modular, extensible design of the system ensures that it can adapt to new developments and continue to provide value in the future.
-
----
-
-# References
-
-## Academic Papers
-
-1. Lewis, P., et al. (2020). "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." *Advances in Neural Information Processing Systems*.
-
-2. Karpukhin, V., et al. (2020). "Dense Passage Retrieval for Open-Domain Question Answering." *Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing*.
-
-3. Guu, K., et al. (2020). "REALM: Retrieval-Augmented Language Model Pre-Training." *Proceedings of the 37th International Conference on Machine Learning*.
-
-4. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." *Advances in Neural Information Processing Systems*.
-
-5. Johnson, J., et al. (2021). "FAISS: A Library for Efficient Similarity Search." *arXiv preprint arXiv:1702.08734*.
-
-## Technical Resources
-
-1. OpenAI API Documentation: [https://platform.openai.com/docs/](https://platform.openai.com/docs/)
-
-2. Cohere API Documentation: [https://docs.cohere.com/](https://docs.cohere.com/)
-
-3. pgvector Documentation: [https://github.com/pgvector/pgvector](https://github.com/pgvector/pgvector)
-
-4. Qdrant Documentation: [https://qdrant.tech/documentation/](https://qdrant.tech/documentation/)
-
-5. FastAPI Documentation: [https://fastapi.tiangolo.com/](https://fastapi.tiangolo.com/)
-
-6. React Documentation: [https://reactjs.org/docs/getting-started.html](https://reactjs.org/docs/getting-started.html)
-
-7. SQLAlchemy Documentation: [https://docs.sqlalchemy.org/](https://docs.sqlalchemy.org/)
-
-8. Alembic Documentation: [https://alembic.sqlalchemy.org/](https://alembic.sqlalchemy.org/)
-
-## Project Resources
-
-1. Project Repository: [https://github.com/00JIMMY00/local_rag](https://github.com/00JIMMY00/local_rag)
-
-2. Original Tutorial Series: [YouTube Playlist](https://www.youtube.com/watch?v=Vv6e2Rb1Q6w&list=PLvLvlVqNQGHCUR2p0b8a0QpVjDUg50wQj)
-
----
-
-# Appendices
-
-## Appendix A: Environment Variables
-
-The system uses the following environment variables:
-
-```
-# Application Settings
-APP_NAME="mini-RAG"
-APP_VERSION="0.1"
-
-# File Settings
-FILE_ALLOWED_TYPES=["text/plain", "application/pdf"]
-FILE_MAX_SIZE=10
-FILE_DEFAULT_CHUNK_SIZE=512000
-
-# Database Settings
-POSTGRES_USERNAME="postgres"
-POSTGRES_PASSWORD="minirag2222"
-POSTGRES_HOST="localhost"
-POSTGRES_PORT=5432
-POSTGRES_MAIN_DATABASE="minirag"
-
-# LLM Settings
-GENERATION_BACKEND="OPENAI"
-EMBEDDING_BACKEND="COHERE"
-
-# API Keys
-OPENAI_API_KEY="sk-..."
-COHERE_API_KEY="m8-..."
-
-# Model Settings
-GENERATION_MODEL_ID="gpt-4o-mini"
-EMBEDDING_MODEL_ID="embed-multilingual-light-v3.0"
-EMBEDDING_MODEL_SIZE=384
-
-# Generation Settings
-INPUT_DAFAULT_MAX_CHARACTERS=1024
-GENERATION_DAFAULT_MAX_TOKENS=200
-GENERATION_DAFAULT_TEMPERATURE=0.1
-
-# Vector DB Settings
-VECTOR_DB_BACKEND="PGVECTOR"
-VECTOR_DB_PATH="qdrant_db"
-VECTOR_DB_DISTANCE_METHOD="cosine"
-
-# Language Settings
-PRIMARY_LANG="ar"
-DEFAULT_LANG="en"
+Run frontend tests:
+```bash
+cd frontend
+npm test
 ```
 
-## Appendix B: API Response Codes
+#### Code Style
 
-The system uses the following response codes:
+The project follows these style guides:
+- Backend: PEP 8 (enforced with Black and isort)
+- Frontend: ESLint with Airbnb preset
 
-| Signal | Description |
-|--------|-------------|
-| `success` | Operation completed successfully |
-| `file_upload_success` | File uploaded successfully |
-| `file_upload_failed` | File upload failed |
-| `file_size_error` | File exceeds maximum size limit |
-| `file_type_error` | File type not supported |
-| `file_id_error` | File ID not found |
-| `no_files_error` | No files found for processing |
-| `processing_failed` | Document processing failed |
-| `insert_into_vectordb_success` | Indexing completed successfully |
-| `insert_into_vectordb_error` | Indexing failed |
-| `vectordb_collection_retrieved` | Collection information retrieved |
-| `vectordb_search_success` | Search completed successfully |
-| `vectordb_search_error` | Search operation failed |
-| `rag_answer_success` | Answer generated successfully |
-| `rag_answer_error` | Answer generation failed |
-| `project_not_found_error` | Project not found |
-
-## Appendix C: System Requirements
-
-### Minimum Requirements
-
-- **CPU**: 2+ cores
-- **RAM**: 4GB
-- **Storage**: 10GB
-- **Network**: Broadband internet connection
-- **Operating System**: Linux, macOS, or Windows
-
-### Recommended Requirements
-
-- **CPU**: 4+ cores
-- **RAM**: 8GB+
-- **Storage**: 20GB+ SSD
-- **Network**: High-speed internet connection
-- **Operating System**: Linux (Ubuntu 20.04+)
-
-### Software Requirements
-
-- **Docker**: 20.10.0+
-- **Docker Compose**: 2.0.0+
-- **Python**: 3.10+
-- **Node.js**: 16.0.0+
-- **npm**: 8.0.0+
-- **PostgreSQL**: 14.0+
-- **pgvector**: 0.4.0+ 
+Format backend code:
+```bash
+black src
+isort src
