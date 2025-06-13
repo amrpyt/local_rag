@@ -4,10 +4,11 @@ import { Check, ChevronsUpDown, Plus, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useProject } from '../context/ProjectContext.jsx';
-import { fetchProjects, createProject } from '../api/db-client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import apiClient from '../api/client';
+import { createProjectAPI } from '../api/db-client';
 
 // نوع بيانات المشروع
 interface Project {
@@ -20,7 +21,7 @@ export function SimpleProjectSelector() {
   const { selectedProject, setSelectedProject } = useProject();
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newProjectId, setNewProjectId] = useState('');
+  const [newProjectName, setNewProjectName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   // جلب قائمة المشاريع عند تحميل المكون
@@ -28,45 +29,52 @@ export function SimpleProjectSelector() {
     loadProjects();
   }, []);
 
+  useEffect(() => {
+    if (projects.length > 0 && !selectedProject) {
+      handleProjectSelect(projects[0].id.toString());
+    }
+  }, [projects, selectedProject]);
+
   // دالة لجلب قائمة المشاريع من الخادم
   const loadProjects = async () => {
     setLoading(true);
     try {
-      const data = await fetchProjects();
-      setProjects(data);
-      
-      // If there is a selected project from localStorage, ensure it's valid
-      if (selectedProject && !data.some(p => p.id === selectedProject)) {
-        // If the stored project ID is not in the fetched list,
-        // you might want to reset it or handle it as an invalid state.
-        // For now, we'll just let it be, and the user can switch.
-      } else if (!selectedProject && data.length > 0) {
-        // تعيين المشروع الافتراضي إذا لم يكن هناك مشروع محدد
-        setSelectedProject(data[0].id);
+      const response = await apiClient.get('/projects/');
+      if (response.data && Array.isArray(response.data.projects)) {
+        const fetchedProjects = response.data.projects;
+        setProjects(fetchedProjects);
+        if(fetchedProjects.length > 0 && !selectedProject) {
+            setSelectedProject(fetchedProjects[0].id);
+        }
+      } else {
+        setProjects([]);
       }
     } catch (error) {
-      console.error('Error loading projects:', error);
+      console.error("Failed to fetch projects:", error);
+      setProjects([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleProjectSelect = (projectId: string) => {
+    setSelectedProject(parseInt(projectId));
+  };
+
   // معالجة إنشاء مشروع جديد
   const handleCreateOrSwitchProject = async () => {
-    if (!newProjectId.trim()) return;
+    if (!newProjectName.trim()) return;
     
     setIsCreating(true);
     try {
-      // We use the 'createProject' function which now just formats the object
-      const newProject = await createProject(newProjectId);
+      const newProject = await createProjectAPI(newProjectName);
       if (newProject) {
-        // Check if project already exists in the list
         if (!projects.find(p => p.id === newProject.id)) {
           setProjects([...projects, newProject]);
         }
         setSelectedProject(newProject.id);
         setDialogOpen(false);
-        setNewProjectId('');
+        setNewProjectName('');
       }
     } catch (error) {
       console.error('Error creating/switching project:', error);
@@ -112,6 +120,15 @@ export function SimpleProjectSelector() {
         >
           <Plus className="h-4 w-4" />
         </Button>
+
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={loadProjects}
+          title="Refresh"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" />
+        </Button>
       </div>
 
       {/* مربع حوار إنشاء مشروع جديد */}
@@ -122,16 +139,16 @@ export function SimpleProjectSelector() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="project-id" className="text-right">
-                Project ID
+              <Label htmlFor="project-name" className="text-right">
+                Project Name
               </Label>
               <Input
-                id="project-id"
-                type="number"
-                value={newProjectId}
-                onChange={(e) => setNewProjectId(e.target.value)}
+                id="project-name"
+                type="text"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder="Enter a new project name"
                 className="col-span-3"
-                placeholder="Enter a project ID"
               />
             </div>
           </div>
@@ -139,17 +156,14 @@ export function SimpleProjectSelector() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleCreateOrSwitchProject} 
-              disabled={!newProjectId.trim() || isCreating}
-            >
+            <Button onClick={handleCreateOrSwitchProject} disabled={!newProjectName.trim() || isCreating}>
               {isCreating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading...
+                  Creating...
                 </>
               ) : (
-                'Go to Project'
+                'Create Project'
               )}
             </Button>
           </DialogFooter>

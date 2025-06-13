@@ -1,8 +1,9 @@
 import { useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { SimpleProjectSelector } from '../SimpleProjectSelector';
+import { useProject } from '../../context/ProjectContext';
 
 interface HeaderProps {
   className?: string;
@@ -10,6 +11,7 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const location = useLocation();
+  const { setSelectedProject } = useProject();
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -40,6 +42,9 @@ export function Header({ className }: HeaderProps) {
         <h1 className="text-xl font-bold">{getPageTitle()}</h1>
         <ChevronRight className="mx-2 h-4 w-4 text-muted-foreground" />
         <SimpleProjectSelector />
+        <Button variant="ghost" size="icon" onClick={() => setSelectedProject(null)} className="ml-2">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
       
       <div className="ml-auto flex items-center gap-4">

@@ -1,21 +1,18 @@
 // Placeholder for db-client.ts - will be reconfigured shortly
-import axios from 'axios';
-
-const dbApiClient = axios.create({
-  baseURL: 'http://173.212.254.228:3001/api/v1'
-});
+import apiClient from './client';
 
 export const fetchProjects = async () => {
-  const response = await dbApiClient.get('/projects/');
-  // The backend returns { signal: '...', projects: [1, 2, 3] }
-  // We need to transform this into an array of { id: number, name: string }
-  if (response.data && response.data.projects) {
-    return response.data.projects.map((id: number) => ({
-      id: id,
-      name: `Project ${id}`, // Backend does not provide names, so we create them.
-    }));
+  try {
+    const response = await apiClient.get('/projects/');
+    // The backend returns { signal: '...', projects: [{id: 1, name: 'Project 1'}, ...] }
+    if (response.data && response.data.projects) {
+      return response.data.projects;
+    }
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch projects:", error);
+    return [];
   }
-  return [];
 };
 
 export const createProject = async (name: string) => {
@@ -30,6 +27,14 @@ export const createProject = async (name: string) => {
     return { id: newProjectId, name: `Project ${newProjectId}` };
 };
 
+export const createProjectAPI = async (name: string): Promise<{id: number, name: string}> => {
+    const response = await apiClient.post('/projects/', { name });
+    if (response.data && response.data.project) {
+        return response.data.project;
+    }
+    throw new Error(response.data?.detail || 'Failed to create project.');
+};
+
 export interface Statistics {
   totalDocuments: number;
   totalQueries: number;
@@ -38,7 +43,7 @@ export interface Statistics {
 }
 
 export const fetchStatistics = async (projectId: string): Promise<Statistics> => {
-  const response = await dbApiClient.get(`/statistics/${projectId}`);
+  const response = await apiClient.get(`/statistics/${projectId}`);
   return response.data;
 };
 
@@ -57,7 +62,7 @@ export interface IndexInfo {
 }
 
 export const fetchIndexInfo = async (projectId: string): Promise<IndexInfo> => {
-  const response = await dbApiClient.get(`/nlp/index/info/${projectId}`);
+  const response = await apiClient.get(`/nlp/index/info/${projectId}`);
   if (response.data && response.data.signal === 'vectordb_collection_retrieved') {
     return response.data;
   }
@@ -80,7 +85,7 @@ export interface SearchResponse {
 }
 
 export const searchDocuments = async (projectId: string, query: string, limit: number): Promise<SearchResponse> => {
-  const response = await dbApiClient.post(`/nlp/index/search/${projectId}`, {
+  const response = await apiClient.post(`/nlp/index/search/${projectId}`, {
     text: query,
     limit: limit,
   });
@@ -94,7 +99,7 @@ export interface QAResult {
 }
 
 export const askQuestion = async (projectId: string, query: string): Promise<QAResult> => {
-  const response = await dbApiClient.post(`/nlp/index/answer/${projectId}`, { text: query });
+  const response = await apiClient.post(`/nlp/index/answer/${projectId}`, { text: query });
   return response.data;
 };
 
@@ -104,7 +109,7 @@ export interface PushResult {
 }
 
 export const pushToIndex = async (projectId: string, resetIndex: boolean): Promise<PushResult> => {
-  const response = await dbApiClient.post(`/nlp/index/push/${projectId}`, {
+  const response = await apiClient.post(`/nlp/index/push/${projectId}`, {
     do_reset: resetIndex ? 1 : 0,
   });
   return response.data;

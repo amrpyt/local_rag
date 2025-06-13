@@ -8,6 +8,7 @@ import { Send, User, Bot, Loader2, AlertCircle, Sparkles, MessageSquare, Info } 
 import { useProject } from '../context/ProjectContext';
 import { askQuestion, QAResult, SearchResult } from '../api/db-client';
 import Markdown from 'react-markdown';
+import { SplineSceneBasic } from '../components/ui/demo';
 
 interface Message {
   role: 'user' | 'bot';
@@ -42,12 +43,12 @@ export default function QAPage() {
       const response = await askQuestion(selectedProject.toString(), input);
 
       if (response && response.signal === 'rag_answer_success') {
-        const botMessage: Message = { 
-          role: 'bot', 
-          content: response.answer,
+      const botMessage: Message = { 
+        role: 'bot', 
+        content: response.answer,
           prompt: response.full_prompt
-        };
-        setMessages((prev) => [...prev, botMessage]);
+      };
+      setMessages((prev) => [...prev, botMessage]);
       } else {
         const errorMessage = response?.signal || 'Sorry, I ran into an error.';
         const errorBotMessage: Message = { role: 'bot', content: errorMessage, error: true };
@@ -101,7 +102,8 @@ export default function QAPage() {
           <div className="flex flex-col items-center justify-center h-full text-center">
              {!selectedProject ? (
               <>
-                <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+                <SplineSceneBasic />
+                <AlertCircle className="h-12 w-12 text-destructive mb-4 mt-4" />
                 <h3 className="text-xl font-semibold">No Project Selected</h3>
                 <p className="text-muted-foreground">Please select a project from the header to start a conversation.</p>
               </>

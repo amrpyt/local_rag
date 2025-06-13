@@ -1,6 +1,9 @@
 {
   "dependencies": {
+    "@splinetool/react-spline": "^4.0.0",
+    "@splinetool/runtime": "^1.10.5",
     "axios": "^1.9.0",
+    "framer-motion": "^12.18.1",
     "pg": "^8.16.0",
     "recharts": "^2.15.3"
   }
