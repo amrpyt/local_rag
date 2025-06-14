@@ -1,0 +1,105 @@
+# Product Requirements Document (PRD) – Mini-RAG Front-End Revamp
+
+## 1. Project Overview
+Mini-RAG is a Retrieval-Augmented Generation (RAG) platform that lets users ingest documents, index them in a vector database and query them via semantic search or question-answering. A FastAPI back-end already exposes REST endpoints (see section 3). The goal of this PRD is to define a modern, production-quality front-end that surfaces these capabilities through an intuitive UI.
+
+## 2. Problem Statement
+While the back-end is feature-complete, the existing React front-end is experimental and suffers from:
+1. Inconsistent visual design and navigation.
+2. Unclear information architecture; new users struggle to discover features.
+3. Fragile API integration and poor error handling.
+4. Limited responsiveness and accessibility.
+
+## 3. Back-End API Summary (v1)
+| # | Endpoint | Method | Purpose |
+|---|-----------|--------|---------|
+|1|`/api/v1/`|GET|Application name & version (health-check).|
+|2|`/api/v1/projects/`|GET|List all project IDs.|
+|3|`/api/v1/data/upload/{project_id}`|POST|Upload a file to a project.|
+|4|`/api/v1/data/process/{project_id}`|POST|Split uploaded files into chunks and store them.| 
+|5|`/api/v1/nlp/index/push/{project_id}`|POST|Push processed chunks to vector DB.|
+|6|`/api/v1/nlp/index/info/{project_id}`|GET|Retrieve collection meta-data.| 
+|7|`/api/v1/nlp/index/search/{project_id}`|POST|Semantic search across indexed chunks.| 
+|8|`/api/v1/nlp/index/answer/{project_id}`|POST|RAG question answering.| 
+
+Authentication is currently open; future versions may require API tokens.
+
+## 4. Vision & Goals
+1. **Delightful UX** – Provide a polished interface enabling technical and non-technical users to interact with Mini-RAG in <2 clicks.
+2. **Feature Parity** – Expose every v1 API capability with clear user journeys.
+3. **Observability** – Visualise ingestion, index status and usage statistics in real-time.
+4. **Extensibility** – Modular code-base that supports future tasks such as multi-project management, auth and chat history.
+
+## 5. Target Users
+• Data scientists experimenting with RAG workflows.  
+• Developers integrating semantic search into apps.  
+• Students following the Arabic tutorial series.
+
+## 6. Functional Requirements
+FR-1  Dashboard landing page summarising projects, index status & key stats.  
+FR-2  Project selector & creator (uses `/projects/`).  
+FR-3  Upload centre with drag-and-drop, progress bars & file list (uses `/data/upload/`).  
+FR-4  Processing wizard for chunk size/overlap, reset toggle (uses `/data/process/`).  
+FR-5  Index management page with "Push to index", "Reset" and collection info (uses `/nlp/index/*`).  
+FR-6  Search page with query box, top-k selector, result viewer highlighting passage & metadata.  
+FR-7  Q&A chat page with conversation view, source citations and streaming responses.  
+FR-8  Global toast notifications & error banners.  
+FR-9  Statistics page showing charts (document types, query history etc.).  
+FR-10 Health-check & version modal (uses root endpoint).
+
+## 7. Non-Functional Requirements
+NFR-1  Responsive layout (mobile, tablet, desktop ≥1280 px).  
+NFR-2  Performance: first contentful paint ≤1.5 s on broadband.  
+NFR-3  Accessibility (WCAG 2.1 AA).  
+NFR-4  Internationalisation ready (en/ar).  
+NFR-5  Code quality: ESLint, Prettier, 75 % unit test coverage.  
+NFR-6  Security best practices (CORS, no API key leak, input sanitisation).  
+
+## 8. Technical Stack
+• React 18 + TypeScript
+• Vite build tool  
+• Tailwind CSS & shadcn/ui component library  
+• React Router  
+• React Query (TanStack) for data-fetching & caching  
+• Context API (Project context)  
+• Victory or Recharts for charts  
+• Playwright for e2e tests  
+• CI via GitHub Actions (lint → unit → build).
+
+## 9. Architecture & Key Components
+1. **API Client Layer** – Typed wrappers for each endpoint, centralised in `src/api/*` (already present but will be hardened).
+2. **Context Providers** – `ProjectProvider`, `ThemeProvider`, `ToastProvider`.
+3. **Pages** – `Dashboard`, `Upload`, `Process`, `IndexInfo`, `IndexSearch`, `QAPage`, `Settings`, `NotFound`.
+4. **Reusable UI** – Buttons, Inputs, Charts, Modals, Skeleton loaders.
+5. **Routing** – `/`, `/project/:id/upload`, `/project/:id/search`, etc.
+6. **State Machines** – XState or simple reducers for complex flows (processing wizard).
+
+## 10. Milestones
+| Date | Milestone | Deliverables |
+|------|-----------|--------------|
+| Wk 1 | Design Sprint | Low-fi wireframes, component inventory.|
+| Wk 2 | Scaffolding | Vite + TS project, routing, theme, API client refactor.| 
+| Wk 3 | Upload & Process | FR-3 & FR-4 with unit tests.| 
+| Wk 4 | Index Management | FR-5, real-time status polling.| 
+| Wk 5 | Search & Q&A | FR-6 & FR-7 with streaming UI.| 
+| Wk 6 | Dashboard & Stats | FR-1 & FR-9, charts, metrics.| 
+| Wk 7 | Polish & Testing | Accessibility, i18n, Playwright e2e, CI pipeline.| 
+| Wk 8 | Release v1 | Deployment docs, user guide, retrospection.
+
+## 11. Success Metrics
+• 90 % of API error cases handled gracefully.  
+• >80 Google Lighthouse performance & accessibility scores.  
+• <5 % bounce rate from dashboard to action pages.  
+• Positive qualitative feedback from 5 beta users.
+
+## 12. Risks & Mitigations
+1. **API evolution** – Backend endpoints may change → adopt OpenAPI schema generation.  
+2. **Vector DB latency** – Use optimistic UI, loading skeletons.  
+3. **Large file uploads** – Implement chunked uploads & size limits.  
+4. **Scope creep** – Adhere to milestones; backlog non-essential ideas.
+
+## 13. Future Enhancements
+• User authentication & role-based access.  
+• Project sharing & collaboration.  
+• Model selection and prompt editor.  
+• Export chat history and search results to Markdown/PDF. 
