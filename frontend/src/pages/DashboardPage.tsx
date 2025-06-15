@@ -41,9 +41,14 @@ interface IndexInfo {
     indexed_vector_count?: number;
     points_count?: number;
     record_count?: number;
+    dimensions?: number;
+    indexed?: boolean;
     table_info?: {
       tablename?: string;
       hasindexes?: boolean;
+      schemaname?: string;
+      tableowner?: string;
+      tablespace?: string;
     };
   };
 }
@@ -55,6 +60,16 @@ const generateMockIndexInfo = (projectId: string): IndexInfo => ({
       "vector_count": Math.floor(Math.random() * 10000) + 1000,
       "indexed_vector_count": Math.floor(Math.random() * 1000) + 100,
       "points_count": Math.floor(Math.random() * 10000) + 1000,
+      "record_count": Math.floor(Math.random() * 10000) + 1000,
+      "dimensions": 768,
+      "indexed": true,
+      "table_info": {
+        "tablename": `collection_${Math.floor(Math.random() * 10)}_${Math.floor(Math.random() * 10)}`,
+        "hasindexes": true,
+        "schemaname": "public",
+        "tableowner": "postgres",
+        "tablespace": null
+      }
     }
 });
 
@@ -177,7 +192,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{indexInfo?.collection_info?.points_count || 0}</div>
+                <div className="text-2xl font-bold">{indexInfo?.collection_info?.record_count || 0}</div>
                 <p className="text-xs text-muted-foreground">Chunks in the vector database</p>
               </>
             )}
