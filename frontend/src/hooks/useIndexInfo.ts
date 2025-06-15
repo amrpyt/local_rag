@@ -50,6 +50,7 @@ export const useIndexInfo = (projectId: string | number | null, useMockData = fa
       queryFn: () => fetchIndexInfo(projectId, useMockData),
       enabled: !!projectId,
       retry: useMockData ? 0 : 2,
-      refetchInterval: useMockData ? false : 5000,
+      refetchInterval: false,
+      staleTime: 60000,
     });
 }; 

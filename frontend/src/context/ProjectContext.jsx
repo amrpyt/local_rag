@@ -13,6 +13,7 @@ export const useProject = () => {
 };
 
 export const ProjectProvider = ({ children }) => {
+  // Always use live data in production
   const [useMockData, setUseMockData] = useState(() => {
     const saved = localStorage.getItem('useMockData');
     return saved !== null ? JSON.parse(saved) : false;
@@ -28,15 +29,19 @@ export const ProjectProvider = ({ children }) => {
         const savedId = localStorage.getItem('selectedProjectId');
         const project = savedId ? projects.projects.find(p => p.id.toString() === savedId) : null;
         if (project) {
+          console.log('Setting selected project from localStorage:', project);
           setSelectedProject(project);
         } else if (projects.projects.length > 0) {
           // If no saved project or saved project not in list, default to first
+          console.log('Setting default project:', projects.projects[0]);
           setSelectedProject(projects.projects[0]);
+          localStorage.setItem('selectedProjectId', projects.projects[0].id.toString());
         }
       } catch (e) {
         console.error("Failed to process selectedProject from localStorage", e);
         if (projects.projects.length > 0) {
           setSelectedProject(projects.projects[0]);
+          localStorage.setItem('selectedProjectId', projects.projects[0].id.toString());
         }
       }
     }
@@ -55,6 +60,7 @@ export const ProjectProvider = ({ children }) => {
   };
 
   const selectProject = (project) => {
+    console.log('Selecting project:', project);
     setSelectedProject(project);
     if (project) {
       localStorage.setItem('selectedProjectId', project.id.toString());
@@ -73,6 +79,7 @@ export const ProjectProvider = ({ children }) => {
       value={{
         projects,
         selectedProject,
+        setSelectedProject,
         selectProject,
         clearSelectedProject,
         isLoading,

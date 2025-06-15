@@ -21,9 +21,9 @@ export function SimpleProjectSelector({ isCollapsed }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   
-  const { selectedProject, setSelectedProject } = useProject();
-  const { data: projectsData, isLoading, error } = useProjects();
-  const createProjectMutation = useCreateProject();
+  const { selectedProject, selectProject, useMockData } = useProject();
+  const { data: projectsData, isLoading, error } = useProjects(useMockData);
+  const createProjectMutation = useCreateProject(useMockData);
 
   // FOR DEBUGGING: Log the props received from the context
   console.log('SimpleProjectSelector Props:', {
@@ -37,7 +37,7 @@ export function SimpleProjectSelector({ isCollapsed }) {
     if (!newProjectName) return;
     createProjectMutation.mutate({ name: newProjectName }, {
       onSuccess: (data) => {
-        setSelectedProject(data);
+        selectProject(data);
         setDialogOpen(false);
         setNewProjectName('');
       }
@@ -85,7 +85,7 @@ export function SimpleProjectSelector({ isCollapsed }) {
                     key={project.id}
                     value={project.name}
                     onSelect={() => {
-                      setSelectedProject(project);
+                      selectProject(project);
                       setOpen(false);
                     }}
                   >
