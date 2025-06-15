@@ -19,6 +19,7 @@ import QAPage from './pages/QAPage';
 import AboutPage from './pages/AboutPage.jsx';
 import TestConnectionPage from './pages/TestConnectionPage';
 import IndexPage from './pages/IndexPage';
+import WelcomeEndpointPage from './pages/WelcomeEndpointPage.jsx';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
                   <Route path="/qa" element={<QAPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/test" element={<TestConnectionPage />} />
+                  <Route path="/welcome" element={<WelcomeEndpointPage />} />
                 </Routes>
               </main>
             </div>

@@ -3,20 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Skeleton } from '../components/ui/skeleton';
 import { AlertCircle, RefreshCcw, UploadCloud, Trash2, Users } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import { useIndexInfo } from '../hooks/useStatistics';
+import { useIndexInfo } from '../hooks/useIndexInfo';
 import { useResetIndex } from '../hooks/useNlp';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
 export default function IndexInfoPage() {
-  const { selectedProject } = useProject();
-  const { data: indexInfo, isLoading, error, refetch } = useIndexInfo(selectedProject);
+  const { selectedProject, useMockData } = useProject();
+  const { data: indexInfo, isLoading, error, refetch } = useIndexInfo(selectedProject?.id, useMockData);
   const resetIndexMutation = useResetIndex();
 
   const handleResetIndex = async () => {
     if (!selectedProject) return;
     
-    resetIndexMutation.mutate(selectedProject, {
+    resetIndexMutation.mutate(selectedProject.id.toString(), {
         onSuccess: () => {
             toast.success("Index reset successfully.");
             refetch();
@@ -64,7 +64,7 @@ export default function IndexInfoPage() {
         <div className="flex flex-col items-center justify-center text-center p-10 border-2 border-dashed border-destructive rounded-lg bg-destructive/10 text-destructive">
           <AlertCircle className="h-10 w-10 mb-4" />
           <h3 className="text-lg font-semibold">An Error Occurred</h3>
-          <p>{error}</p>
+          <p>{error.message}</p>
         </div>
       );
     }
@@ -72,9 +72,9 @@ export default function IndexInfoPage() {
     if (indexInfo && indexInfo.collection_info) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <StatCard title="Collection Name" value={indexInfo.collection_info.table_info.tablename} isLoading={false} />
+          <StatCard title="Collection Name" value={indexInfo.collection_info.table_info?.tablename} isLoading={false} />
           <StatCard title="Indexed Records" value={indexInfo.collection_info.record_count} isLoading={false} testId="total-records" />
-          <StatCard title="Index Status" value={indexInfo.collection_info.table_info.hasindexes ? 'Active' : 'Not Active'} isLoading={false} />
+          <StatCard title="Index Status" value={indexInfo.collection_info.table_info?.hasindexes ? 'Active' : 'Not Active'} isLoading={false} />
         </div>
       );
     }

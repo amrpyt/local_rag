@@ -21,29 +21,63 @@ import {
 import { TestApiComponent } from '../components/TestApiComponent';
 import DirectApiTest from '../components/DirectApiTest';
 import { useProject } from '../context/ProjectContext';
-import { useIndexInfo } from '../hooks/useIndexInfo';
 import { Spinner } from '../components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { useError } from '../context/ErrorContext';
 import { SimpleProjectSelector } from '../components/SimpleProjectSelector';
 import MockDataSwitch from '../components/MockDataSwitch';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '../api/client';
+
+// Define the index info response type
+interface IndexInfo {
+  signal: string;
+  collection_info: {
+    vector_count: number;
+    indexed_vector_count: number;
+    points_count: number;
+  };
+}
+
+// Mock data generation
+const generateMockIndexInfo = (projectId: string): IndexInfo => ({
+    "signal": "success",
+    "collection_info": {
+      "vector_count": Math.floor(Math.random() * 10000) + 1000,
+      "indexed_vector_count": Math.floor(Math.random() * 1000) + 100,
+      "points_count": Math.floor(Math.random() * 10000) + 1000,
+    }
+});
+
+const fetchIndexInfo = async (projectId: string, useMockData: boolean): Promise<IndexInfo> => {
+    if (useMockData) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        return generateMockIndexInfo(projectId);
+    }
+    const { data } = await apiClient.get(`/nlp/index/info/${projectId}`);
+    return data;
+};
+
+const useIndexInfo = (projectId: string | number | null, useMockData: boolean) => {
+    return useQuery<IndexInfo, Error>({
+      queryKey: ['indexInfo', projectId, useMockData],
+      queryFn: () => fetchIndexInfo(String(projectId), useMockData),
+      enabled: !!projectId,
+      retry: useMockData ? 0 : 2,
+      refetchInterval: useMockData ? false : 5000,
+    });
+};
 
 export default function DashboardPage() {
-  const { selectedProject, projectStatus, isStatusLoading, fetchProjectStatus } = useProject();
+  const { selectedProject } = useProject();
   const { setError } = useError();
   
-  const loadProjectData = () => {
-    if (selectedProject?.id) {
-        fetchProjectStatus(selectedProject.id);
-    }
-  };
-
-  useEffect(() => {
-    loadProjectData();
-  }, [selectedProject]);
-
-  const isLoading = isStatusLoading;
-
+  // Default to false if useMockData is not available in ProjectContext
+  const useMockData = (useProject() as any).useMockData || false;
+  
+  const projectId = selectedProject?.id || null;
+  const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(projectId, useMockData);
+  
   if (!selectedProject) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -101,7 +135,9 @@ export default function DashboardPage() {
 
   const getProjectName = () => {
     if (!selectedProject) return "No project selected";
-    return typeof selectedProject === 'object' ? selectedProject.name : `Project ${selectedProject}`;
+    return typeof selectedProject === 'object' && selectedProject.name 
+      ? selectedProject.name 
+      : `Project ${selectedProject}`;
   };
 
   return (
@@ -113,10 +149,6 @@ export default function DashboardPage() {
             Welcome to Mini-RAG, a personal document question answering system
           </p>
         </div>
-        <Button onClick={loadProjectData} disabled={isLoading || !selectedProject}>
-          {isLoading ? <Spinner className="mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          Refresh Data
-        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -128,14 +160,14 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isIndexInfoLoading ? (
               <div className="flex items-center space-x-2">
                 <Spinner className="h-4 w-4" />
                 <span className="text-sm text-muted-foreground">Loading...</span>
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{projectStatus?.points_count || 0}</div>
+                <div className="text-2xl font-bold">{indexInfo?.collection_info?.points_count || 0}</div>
                 <p className="text-xs text-muted-foreground">Chunks in the vector database</p>
               </>
             )}
@@ -149,7 +181,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isIndexInfoLoading ? (
               <div className="flex items-center space-x-2">
                 <Spinner className="h-4 w-4" />
                 <span className="text-sm text-muted-foreground">Loading...</span>
@@ -157,7 +189,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <div className="flex items-center text-lg">
-                  {projectStatus?.points_count > 0 ? (
+                  {indexInfo?.collection_info?.points_count > 0 ? (
                     <>
                       <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
                       <span className="font-medium">Ready</span>

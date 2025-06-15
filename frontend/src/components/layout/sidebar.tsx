@@ -14,7 +14,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Globe,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { useLayout } from '../../context/LayoutContext';
 import FocusTrap from 'focus-trap-react';
@@ -35,6 +36,11 @@ export function Sidebar({ className }: SidebarProps) {
       title: 'Dashboard',
       href: '/',
       icon: <LayoutDashboard size={20} aria-hidden="true" />,
+    },
+    {
+      title: 'Welcome API',
+      href: '/welcome',
+      icon: <Home size={20} aria-hidden="true" />,
     },
     {
       title: 'Upload',
