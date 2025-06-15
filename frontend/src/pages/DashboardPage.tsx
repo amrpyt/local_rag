@@ -18,8 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { TestApiComponent } from '../components/TestApiComponent';
-import DirectApiTest from '../components/DirectApiTest';
 import { useProject } from '../context/ProjectContext';
 import { Spinner } from '../components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
@@ -245,18 +243,6 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Backend Connection Test</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TestApiComponent />
-          </CardContent>
-        </Card>
-        <DirectApiTest />
-      </div>
 
       <div className="mt-8 border-t pt-6">
         <MockDataSwitch />
