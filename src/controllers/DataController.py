@@ -57,12 +57,20 @@ class DataController(BaseController):
         return new_file_path, random_key + "_" + cleaned_file_name
 
     def get_clean_file_name(self, orig_file_name: str):
-        # remove any special characters, except underscore and .
-        cleaned_file_name = re.sub(r'[^\w.]', '', orig_file_name.strip())
-
-        # replace spaces with underscore
-        cleaned_file_name = cleaned_file_name.replace(" ", "_")
-
+        # Get file extension
+        name, ext = os.path.splitext(orig_file_name)
+        
+        # Remove spaces and replace with underscores
+        name = name.replace(" ", "_")
+        
+        # Remove problematic characters but preserve unicode (including Arabic)
+        # Only remove characters that would cause issues in file paths
+        name = re.sub(r'[\\/:*?"<>|]', '', name)
+        
+        # Ensure the extension is preserved exactly as it was
+        cleaned_file_name = name + ext
+        
+        logger.info(f"Cleaned filename: {orig_file_name} -> {cleaned_file_name}")
         return cleaned_file_name
 
 

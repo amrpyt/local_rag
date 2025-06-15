@@ -1,11 +1,14 @@
 from .BaseController import BaseController
 from .ProjectController import ProjectController
 import os
+import logging
 from langchain_community.document_loaders import TextLoader
 from langchain_community.document_loaders import PyMuPDFLoader
 from models import ProcessingEnum
 from typing import List
 from dataclasses import dataclass
+
+logger = logging.getLogger('uvicorn.error')
 
 @dataclass
 class Document:
@@ -21,10 +24,9 @@ class ProcessController(BaseController):
         self.project_path = ProjectController().get_project_path(project_id=project_id)
 
     def get_file_extension(self, file_id: str):
-        return os.path.splitext(file_id)[-1]
+        return os.path.splitext(file_id)[-1].lower()
 
     def get_file_loader(self, file_id: str):
-
         file_ext = self.get_file_extension(file_id=file_id)
         file_path = os.path.join(
             self.project_path,
@@ -32,23 +34,52 @@ class ProcessController(BaseController):
         )
 
         if not os.path.exists(file_path):
+            logger.error(f"File not found: {file_path}")
             return None
 
-        if file_ext == ProcessingEnum.TXT.value:
-            return TextLoader(file_path, encoding="utf-8")
+        logger.info(f"Loading file: {file_path} with extension: {file_ext}")
 
-        if file_ext == ProcessingEnum.PDF.value:
-            return PyMuPDFLoader(file_path)
+        try:
+            if file_ext == ProcessingEnum.TXT.value:
+                return TextLoader(file_path, encoding="utf-8")
+            elif file_ext == ProcessingEnum.PDF.value:
+                return PyMuPDFLoader(file_path)
+            else:
+                logger.warning(f"Unsupported file extension: {file_ext} for file: {file_id}")
+                # Try to guess based on content or default to text for safety
+                if file_id.lower().endswith('.pdf'):
+                    logger.info(f"Trying PDF loader for file: {file_id}")
+                    return PyMuPDFLoader(file_path)
+                else:
+                    logger.info(f"Defaulting to text loader for file: {file_id}")
+                    return TextLoader(file_path, encoding="utf-8")
+        except Exception as e:
+            logger.error(f"Error creating loader for {file_id}: {str(e)}")
+            return None
         
         return None
 
     def get_file_content(self, file_id: str):
-
         loader = self.get_file_loader(file_id=file_id)
-        if loader:
+        if not loader:
+            logger.error(f"No loader found for file: {file_id}")
+            return None
+            
+        try:
+            logger.info(f"Loading content from file: {file_id}")
             return loader.load()
-
-        return None
+        except Exception as e:
+            logger.error(f"Error loading file {file_id}: {str(e)}")
+            # If TextLoader fails, try PyMuPDFLoader as fallback
+            if isinstance(loader, TextLoader):
+                logger.info(f"TextLoader failed, trying PyMuPDFLoader for: {file_id}")
+                try:
+                    file_path = os.path.join(self.project_path, file_id)
+                    pdf_loader = PyMuPDFLoader(file_path)
+                    return pdf_loader.load()
+                except Exception as pdf_e:
+                    logger.error(f"PyMuPDFLoader also failed for {file_id}: {str(pdf_e)}")
+            return None
 
     def process_file_content(self, file_content: list, file_id: str,
                             chunk_size: int=100, overlap_size: int=20):
