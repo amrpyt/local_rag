@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        button:hover {
+            background-color: #4338ca;
+        }
+        pre {
+            background-color: #f3f4f6;
+            padding: 12px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 400px;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .success {
+            color: #10b981;
+        }
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backend Connection Test</h1>
+    
+    <div class="card">
+        <h2>Direct Connection Test</h2>
+        <p>Status: <span id="direct-status">Not tested</span></p>
+        <div id="direct-error" class="error" style="display: none;"></div>
+        <div id="direct-result" style="display: none;">
+            <h3>Response:</h3>
+            <pre id="direct-response"></pre>
+        </div>
+        <button id="test-direct">Test Direct Connection</button>
+    </div>
+    
+    <div class="card">
+        <h2>Proxy Connection Test</h2>
+        <p>Status: <span id="proxy-status">Not tested</span></p>
+        <div id="proxy-error" class="error" style="display: none;"></div>
+        <div id="proxy-result" style="display: none;">
+            <h3>Response:</h3>
+            <pre id="proxy-response"></pre>
+        </div>
+        <div id="proxy-debug" style="display: none;">
+            <h3>Debug Info:</h3>
+            <pre id="proxy-debug-info"></pre>
+        </div>
+        <button id="test-proxy">Test Proxy Connection</button>
+    </div>
+    
+    <div class="card">
+        <h2>CORS Connection Test</h2>
+        <p>Status: <span id="cors-status">Not tested</span></p>
+        <div id="cors-error" class="error" style="display: none;"></div>
+        <div id="cors-result" style="display: none;">
+            <h3>Response:</h3>
+            <pre id="cors-response"></pre>
+        </div>
+        <button id="test-cors">Test CORS Connection</button>
+    </div>
+
+    <script>
+        // Direct connection test function
+        async function testDirectConnection() {
+            const statusEl = document.getElementById('direct-status');
+            const errorEl = document.getElementById('direct-error');
+            const resultEl = document.getElementById('direct-result');
+            const responseEl = document.getElementById('direct-response');
+            
+            statusEl.textContent = 'Testing...';
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://173.212.254.228:5000/api/v1/projects/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                statusEl.textContent = 'Connection successful';
+                statusEl.className = 'success';
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.style.display = 'block';
+                return true;
+            } catch (error) {
+                statusEl.textContent = 'Connection failed';
+                statusEl.className = 'error';
+                errorEl.textContent = `Error: ${error.message}`;
+                errorEl.style.display = 'block';
+                console.error('Direct connection error:', error);
+                return false;
+            }
+        }
+        
+        // Proxy connection test function
+        async function testProxyConnection() {
+            const statusEl = document.getElementById('proxy-status');
+            const errorEl = document.getElementById('proxy-error');
+            const resultEl = document.getElementById('proxy-result');
+            const responseEl = document.getElementById('proxy-response');
+            const debugEl = document.getElementById('proxy-debug');
+            const debugInfoEl = document.getElementById('proxy-debug-info');
+            
+            statusEl.textContent = 'Testing...';
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
+            debugEl.style.display = 'none';
+            
+            try {
+                // Log the request URL
+                const requestUrl = '/api/v1/projects/';
+                console.log('Sending proxy request to:', requestUrl);
+                
+                // First check the response type
+                const checkResponse = await fetch(requestUrl, { method: 'HEAD' });
+                const contentType = checkResponse.headers.get('content-type');
+                
+                debugInfoEl.textContent = `Request URL: ${requestUrl}\nContent-Type: ${contentType}`;
+                debugEl.style.display = 'block';
+                
+                // Make the actual request
+                const response = await fetch(requestUrl);
+                
+                // If not JSON, get the text and show it for debugging
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    debugInfoEl.textContent += `\n\nResponse Text (first 500 chars):\n${text.substring(0, 500)}`;
+                    throw new Error(`Expected JSON but got ${contentType}`);
+                }
+                
+                const data = await response.json();
+                statusEl.textContent = 'Connection successful';
+                statusEl.className = 'success';
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.style.display = 'block';
+                return true;
+            } catch (error) {
+                statusEl.textContent = 'Connection failed';
+                statusEl.className = 'error';
+                errorEl.textContent = `Error: ${error.message}`;
+                errorEl.style.display = 'block';
+                console.error('Proxy connection error:', error);
+                return false;
+            }
+        }
+        
+        // CORS connection test function
+        async function testCorsConnection() {
+            const statusEl = document.getElementById('cors-status');
+            const errorEl = document.getElementById('cors-error');
+            const resultEl = document.getElementById('cors-result');
+            const responseEl = document.getElementById('cors-response');
+            
+            statusEl.textContent = 'Testing...';
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://173.212.254.228:5000/api/v1/projects/', {
+                    mode: 'cors',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                statusEl.textContent = 'Connection successful';
+                statusEl.className = 'success';
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.style.display = 'block';
+                return true;
+            } catch (error) {
+                statusEl.textContent = 'Connection failed';
+                statusEl.className = 'error';
+                errorEl.textContent = `Error: ${error.message}`;
+                errorEl.style.display = 'block';
+                console.error('CORS connection error:', error);
+                return false;
+            }
+        }
+        
+        // Add click event listeners
+        document.getElementById('test-direct').addEventListener('click', testDirectConnection);
+        document.getElementById('test-proxy').addEventListener('click', testProxyConnection);
+        document.getElementById('test-cors').addEventListener('click', testCorsConnection);
+        
+        // Auto-run tests when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('Running automatic tests...');
+            
+            // Run tests in sequence
+            await testDirectConnection();
+            await testProxyConnection();
+            await testCorsConnection();
+        });
+    </script>
+</body>
+</html> 

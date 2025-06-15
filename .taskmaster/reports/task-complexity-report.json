@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "generatedAt": "2025-06-14T19:07:38.128Z",
+    "tasksAnalyzed": 1,
+    "totalTasks": 33,
+    "analysisCount": 1,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 30,
+      "taskTitle": "Implement Accessibility (WCAG 2.1 AA)",
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the task 'Implement Accessibility (WCAG 2.1 AA)' into smaller, actionable subtasks covering key areas such as semantic HTML implementation, ARIA attribute application, keyboard navigation support, visual accessibility checks (color contrast, alt text), automated testing with tools (Lighthouse, Axe), and manual testing/screen reader checks.",
+      "reasoning": "Implementing WCAG 2.1 AA is a broad effort covering multiple technical areas (HTML structure, ARIA, CSS, JS) and requiring comprehensive testing across the application. Its scope and the need to address various guidelines make it highly complex and necessitate breaking it down into distinct areas."
+    }
+  ]
+}

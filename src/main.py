@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from routes import base, data, nlp, projects
+from fastapi.middleware.cors import CORSMiddleware
+from routes import base, data, nlp, projects, statistics, index
 from helpers.config import get_settings
 from stores.llm.LLMProviderFactory import LLMProviderFactory
 from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
@@ -8,6 +9,21 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://*",
+    "http://*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 async def startup_span():
     settings = get_settings()
@@ -53,4 +69,6 @@ app.on_event("shutdown")(shutdown_span)
 app.include_router(base.base_router)
 app.include_router(data.data_router)
 app.include_router(nlp.nlp_router)
+app.include_router(index.index_router)
 app.include_router(projects.projects_router)
+app.include_router(statistics.statistics_router)

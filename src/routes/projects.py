@@ -17,6 +17,7 @@ projects_router = APIRouter(
 )
 
 @projects_router.get("/")
+@projects_router.get("")
 async def get_all_projects(request: Request):
     """
     Get all projects with their names
