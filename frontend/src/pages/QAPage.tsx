@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
-import { Send, User, Bot, Loader2, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, User, Bot, Loader2, Sparkles, MessageSquare, AlertCircle } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { useAnswer } from '../hooks/useNlp';
+import { useIndexInfo } from '../hooks/useIndexInfo';
 import Markdown from 'react-markdown';
 import { Textarea } from '../components/ui/textarea';
 import remarkGfm from 'remark-gfm';
@@ -41,6 +42,7 @@ export default function QAPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const answerMutation = useAnswer(useMockData);
+  const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(selectedProject?.id, useMockData);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,9 +50,14 @@ export default function QAPage() {
 
   useEffect(scrollToBottom, [messages]);
 
+  const isIndexReady = indexInfo && indexInfo.collection_info && 
+    (indexInfo.collection_info.record_count > 0 || 
+    indexInfo.collection_info.vector_count > 0 || 
+    indexInfo.collection_info.points_count > 0);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || answerMutation.isPending || !selectedProject) return;
+    if (!input.trim() || answerMutation.isPending || !selectedProject || !isIndexReady) return;
 
     const userMessage: Message = { id: `user-${Date.now()}`, role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
@@ -140,6 +147,20 @@ export default function QAPage() {
         </CardHeader>
         
         <CardContent className="flex-1 overflow-y-auto p-4">
+          {!selectedProject && (
+            <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-4 rounded-md mb-4">
+              <AlertCircle className="h-5 w-5" />
+              <p>Please select a project to start asking questions.</p>
+            </div>
+          )}
+          
+          {selectedProject && !isIndexInfoLoading && !isIndexReady && (
+            <div className="flex items-center gap-2 text-orange-500 bg-orange-500/10 p-4 rounded-md mb-4">
+              <AlertCircle className="h-5 w-5" />
+              <p>This project has no indexed documents. Please process and index documents before asking questions.</p>
+            </div>
+          )}
+          
           <div className="space-y-4">
             {messages.length === 0 ? (
                 <div className="text-center text-muted-foreground pt-16">
@@ -167,11 +188,11 @@ export default function QAPage() {
                   handleSend(e);
                 }
               }}
-              disabled={!selectedProject || answerMutation.isPending}
+              disabled={!selectedProject || answerMutation.isPending || !isIndexReady}
             />
             <Button 
               type="submit" 
-              disabled={!input.trim() || !selectedProject || answerMutation.isPending}
+              disabled={!input.trim() || !selectedProject || answerMutation.isPending || !isIndexReady}
               size="icon"
             >
               {answerMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -6,7 +6,17 @@ import { Skeleton } from '../components/ui/skeleton';
 import { Search, FileText, AlertCircle, FileQuestion, BarChart, Loader2 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { useSearch, useAnswer } from '../hooks/useNlp';
+import { useIndexInfo } from '../hooks/useIndexInfo';
 import { toast } from 'sonner';
+
+interface SearchResult {
+  text: string;
+  score: number;
+  payload?: {
+    file_name: string;
+    [key: string]: any;
+  };
+}
 
 /*
   TODO: Add a check to see if the project has indexed documents.
@@ -15,13 +25,7 @@ import { toast } from 'sonner';
   the search form if the index is not ready.
 */
 export default function SearchPage() {
-  const { 
-    selectedProject, 
-    projectStatus, 
-    isStatusLoading, 
-    fetchProjectStatus,
-    useMockData
-  } = useProject();
+  const { selectedProject, useMockData } = useProject();
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(5);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -30,15 +34,7 @@ export default function SearchPage() {
 
   const searchMutation = useSearch(useMockData);
   const answerMutation = useAnswer(useMockData);
-
-  console.log('[SearchPage] Rendering with status:', projectStatus, 'isLoading:', isStatusLoading);
-
-  // Fetch project status when the component mounts or selected project changes
-  useEffect(() => {
-    if (selectedProject) {
-      fetchProjectStatus(selectedProject.id);
-    }
-  }, [selectedProject, fetchProjectStatus]);
+  const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(selectedProject?.id, useMockData);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,10 +122,10 @@ export default function SearchPage() {
     </Card>
   )
 
-  const isIndexReady = projectStatus && (
-    (useMockData && projectStatus.status?.num_vectors > 0) ||
-    (!useMockData && projectStatus.vector_db?.points_count > 0)
-  );
+  const isIndexReady = indexInfo && indexInfo.collection_info && 
+    (indexInfo.collection_info.record_count > 0 || 
+    indexInfo.collection_info.vector_count > 0 || 
+    indexInfo.collection_info.points_count > 0);
 
   return (
     <div className="space-y-8">
@@ -145,7 +141,7 @@ export default function SearchPage() {
           <AlertCircle className="h-5 w-5" />
           <p>Please select a project to start searching.</p>
         </div>
-      ) : isStatusLoading ? (
+      ) : isIndexInfoLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-20 w-full" />

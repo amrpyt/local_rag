@@ -1,7 +1,6 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useProjects } from '../hooks/useProjects'; // Import the data fetching hook
 import { useError } from './ErrorContext'; // Import the error context
-import apiClient from '../api/client';
 
 const ProjectContext = createContext();
 

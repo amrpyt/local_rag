@@ -91,7 +91,7 @@ const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: strin
     await new Promise(resolve => setTimeout(resolve, 1500));
     return { signal: 'success', inserted_items_count: Math.floor(Math.random() * 500) + 100 };
   }
-  const { data } = await apiClient.post<IndexPushResponse>(`/nlp/index/push/${projectId}`, { do_reset: doReset });
+  const { data } = await apiClient.post<IndexPushResponse>(`/nlp/index/push/${projectId}`, { do_reset: doReset ? 1 : 0 });
   return data;
 };
 
@@ -131,26 +131,25 @@ const resetIndex = async (projectId: string): Promise<ResetIndexResponse> => {
 };
 
 // Define hooks
-export const usePushIndex = (useMockData: boolean) => {
+export const usePushIndex = (useMockData = false) => {
   const queryClient = useQueryClient();
-  return useMutation<IndexPushResponse, Error, { projectId: string; doReset: boolean }>({
-    mutationFn: (variables) => pushIndex({ ...variables, useMockData }),
+  return useMutation<IndexPushResponse, Error, { projectId: string | number; doReset: boolean }>({
+    mutationFn: ({ projectId, doReset }) => pushIndex({ projectId: String(projectId), doReset, useMockData }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['indexInfo', undefined, useMockData] });
-      queryClient.invalidateQueries({ queryKey: ['statistics', undefined, useMockData] });
+      queryClient.invalidateQueries({ queryKey: ['indexInfo'] });
     },
   });
 };
 
-export const useSearch = (useMockData: boolean) => {
-    return useMutation<SearchResponse, Error, { projectId: string; text: string; limit?: number }>({
-        mutationFn: (variables) => searchIndex({ ...variables, useMockData }),
+export const useSearch = (useMockData = false) => {
+    return useMutation<SearchResponse, Error, { projectId: string | number; text: string; limit?: number }>({
+        mutationFn: ({ projectId, text, limit }) => searchIndex({ projectId: String(projectId), text, limit, useMockData }),
     });
 };
 
-export const useAnswer = (useMockData: boolean) => {
-    return useMutation<AnswerResponse, Error, { projectId: string; text: string; limit?: number }>({
-        mutationFn: (variables) => answerQuestion({ ...variables, useMockData }),
+export const useAnswer = (useMockData = false) => {
+    return useMutation<AnswerResponse, Error, { projectId: string | number; text: string; limit?: number }>({
+        mutationFn: ({ projectId, text, limit }) => answerQuestion({ projectId: String(projectId), text, limit, useMockData }),
     });
 };
 
@@ -159,8 +158,7 @@ export const useResetIndex = () => {
     return useMutation<ResetIndexResponse, Error, string>({
         mutationFn: resetIndex,
         onSuccess: () => {
-            queryClient.invalidateQueries(['indexInfo']);
-            queryClient.invalidateQueries(['statistics']);
+            queryClient.invalidateQueries({ queryKey: ['indexInfo'] });
         },
     });
 }; 
