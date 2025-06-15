@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Label } from '../components/ui/label';
@@ -23,18 +23,34 @@ export default function IndexPushPage() {
   const [doReset, setDoReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
   const pushIndexMutation = usePushIndex();
   const { handleApiError, handleException, isSuccessResponse } = useErrorHandler();
+
+  // Reset state when component unmounts or when project changes
+  useEffect(() => {
+    setError(null);
+    setProgress(0);
+    setIsCompleted(false);
+    
+    return () => {
+      setError(null);
+      setProgress(0);
+      setIsCompleted(false);
+    };
+  }, [selectedProject]);
 
   // Simulate progress when indexing
   const simulateProgress = () => {
     setProgress(0);
+    setIsCompleted(false);
+    
     const interval = setInterval(() => {
       setProgress(prev => {
         const newProgress = prev + Math.random() * 10;
-        if (newProgress >= 100) {
+        if (newProgress >= 95) {
           clearInterval(interval);
-          return 100;
+          return 95; // Stop at 95% until we get confirmation from server
         }
         return newProgress;
       });
@@ -50,6 +66,7 @@ export default function IndexPushPage() {
     }
 
     setError(null);
+    setIsCompleted(false);
     
     // Extract project ID
     const projectId = typeof selectedProject === 'object' && selectedProject !== null 
@@ -70,16 +87,20 @@ export default function IndexPushPage() {
       onSuccess: (data) => {
         if (isSuccessResponse(data)) {
           setProgress(100);
+          setIsCompleted(true);
+          setError(null);
           toast.success(`Successfully indexed ${data.inserted_items_count} items.`);
         } else {
           stopSimulation();
           setProgress(0);
+          setIsCompleted(false);
           setError(handleApiError(data, 'Failed to push to index. Please try again.'));
         }
       },
       onError: (error) => {
         stopSimulation();
         setProgress(0);
+        setIsCompleted(false);
         setError(handleException(error, 'Failed to push to index. Please try again.'));
       }
     });
@@ -162,7 +183,7 @@ export default function IndexPushPage() {
         </CardContent>
       </Card>
       
-      {pushIndexMutation.isLoading && (
+      {pushIndexMutation.isLoading && !isCompleted && !error && (
         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
           <CardContent className="p-6">
             <LoadingIndicator text="Pushing documents to index..." />
@@ -170,7 +191,7 @@ export default function IndexPushPage() {
         </Card>
       )}
       
-      {pushIndexMutation.data && !pushIndexMutation.isLoading && (
+      {isCompleted && pushIndexMutation.data && !error && (
         <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
           <CardHeader>
             <CardTitle className="flex items-center text-green-700 dark:text-green-300">

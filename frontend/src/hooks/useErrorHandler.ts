@@ -16,6 +16,7 @@ export function useErrorHandler() {
       [ResponseSignals.RAG_ANSWER_ERROR]: 'Failed to generate answer. Please try again.',
       [ResponseSignals.VECTORDB_SEARCH_ERROR]: 'Search failed. Please try again.',
       [ResponseSignals.VECTORDB_INDEX_ERROR]: 'Failed to index documents. Please try again.',
+      [ResponseSignals.INSERT_INTO_VECTORDB_ERROR]: 'Failed to index documents. Please try again.',
       [ResponseSignals.PROCESS_ERROR]: 'Failed to process documents. Please try again.',
       [ResponseSignals.ERROR]: 'An error occurred. Please try again.',
     };
@@ -47,6 +48,7 @@ export function useErrorHandler() {
       ResponseSignals.RAG_ANSWER_SUCCESS,
       ResponseSignals.VECTORDB_SEARCH_SUCCESS,
       ResponseSignals.VECTORDB_INDEX_SUCCESS,
+      ResponseSignals.INSERT_INTO_VECTORDB_SUCCESS,
       ResponseSignals.PROCESS_SUCCESS
     ];
     

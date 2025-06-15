@@ -145,6 +145,13 @@ const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: any; 
     { do_reset: doReset ? 1 : 0 }
   );
   
+  // Map backend signal to frontend signal if needed
+  if (data.signal === 'insert_into_vectordb_success') {
+    data.signal = ResponseSignals.VECTORDB_INDEX_SUCCESS;
+  } else if (data.signal === 'insert_into_vectordb_error') {
+    data.signal = ResponseSignals.VECTORDB_INDEX_ERROR;
+  }
+  
   return data;
 };
 
