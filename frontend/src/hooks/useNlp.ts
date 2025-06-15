@@ -184,8 +184,23 @@ const pushToIndex = async ({ projectId, useMockData }: { projectId: string; useM
 };
 
 const resetIndex = async (projectId: string): Promise<ResetIndexResponse> => {
-  const { data } = await apiClient.post<ResetIndexResponse>(`/nlp/index/reset/${projectId}`);
-  return data;
+  try {
+    console.log('Resetting index for project:', projectId);
+    const { data } = await apiClient.post<ResetIndexResponse>(`/nlp/index/reset/${projectId}`);
+    
+    // Map backend signal to frontend signal if needed
+    if (data.signal === 'index_reset_success') {
+      data.signal = ResponseSignals.INDEX_RESET_SUCCESS;
+    } else if (data.signal === 'index_reset_error') {
+      data.signal = ResponseSignals.INDEX_RESET_ERROR;
+    }
+    
+    console.log('Reset index response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error resetting index:', error);
+    throw error;
+  }
 };
 
 // Define hooks

@@ -102,9 +102,50 @@ async def push_project_index_controller(request: Request, project_id: int, do_re
     }
 
 async def reset_project_index_controller(request: Request, project_id: int):
-    # This is a placeholder implementation.
-    # In a real application, you would delete the collection from your vector database.
+    # Get project information
+    project_model = await ProjectModel.create_instance(
+        db_client=request.app.db_client
+    )
+
+    project = await project_model.get_project_or_create_one(
+        project_id=project_id,
+        project_name=f"Project {project_id}"
+    )
+
+    if not project:
+        return {
+            "signal": "project_not_found_error"
+        }
     
-    return {
-        "signal": "index_reset_success",
-    } 
+    # Initialize NLP controller
+    nlp_controller = NLPController(
+        vectordb_client=request.app.vectordb_client,
+        generation_client=request.app.generation_client,
+        embedding_client=request.app.embedding_client,
+        template_parser=request.app.template_parser,
+    )
+
+    # Get collection name
+    collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+    
+    # Reset the collection (delete and recreate)
+    try:
+        # Delete the collection if it exists
+        await request.app.vectordb_client.delete_collection(collection_name=collection_name)
+        
+        # Create an empty collection
+        await request.app.vectordb_client.create_collection(
+            collection_name=collection_name,
+            embedding_size=request.app.embedding_client.embedding_size,
+            do_reset=True,
+        )
+        
+        return {
+            "signal": "index_reset_success",
+            "message": f"Collection {collection_name} has been reset successfully"
+        }
+    except Exception as e:
+        return {
+            "signal": "index_reset_error",
+            "message": f"Error resetting collection: {str(e)}"
+        } 

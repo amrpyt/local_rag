@@ -18,6 +18,7 @@ export function useErrorHandler() {
       [ResponseSignals.VECTORDB_INDEX_ERROR]: 'Failed to index documents. Please try again.',
       [ResponseSignals.INSERT_INTO_VECTORDB_ERROR]: 'Failed to index documents. Please try again.',
       [ResponseSignals.PROCESS_ERROR]: 'Failed to process documents. Please try again.',
+      [ResponseSignals.INDEX_RESET_ERROR]: 'Failed to reset index. Please try again.',
       [ResponseSignals.ERROR]: 'An error occurred. Please try again.',
     };
 
@@ -49,6 +50,7 @@ export function useErrorHandler() {
       ResponseSignals.VECTORDB_SEARCH_SUCCESS,
       ResponseSignals.VECTORDB_INDEX_SUCCESS,
       ResponseSignals.INSERT_INTO_VECTORDB_SUCCESS,
+      ResponseSignals.INDEX_RESET_SUCCESS,
       ResponseSignals.PROCESS_SUCCESS
     ];
     

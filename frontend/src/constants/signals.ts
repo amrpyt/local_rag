@@ -5,6 +5,7 @@ export const ResponseSignals = {
   VECTORDB_INDEX_SUCCESS: 'vectordb_index_success',
   PROCESS_SUCCESS: 'process_success',
   INSERT_INTO_VECTORDB_SUCCESS: 'insert_into_vectordb_success',
+  INDEX_RESET_SUCCESS: 'index_reset_success',
   
   // Error signals
   RAG_ANSWER_ERROR: 'rag_answer_error',
@@ -12,6 +13,7 @@ export const ResponseSignals = {
   VECTORDB_INDEX_ERROR: 'vectordb_index_error',
   PROCESS_ERROR: 'process_error',
   INSERT_INTO_VECTORDB_ERROR: 'insert_into_vectordb_error',
+  INDEX_RESET_ERROR: 'index_reset_error',
   
   // General signals
   SUCCESS: 'success',
