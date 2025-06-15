@@ -5,6 +5,7 @@ import logging
 from typing import List
 from models.db_schemes import RetrievedDocument
 from sqlalchemy.sql import text as sql_text
+from sqlalchemy.exc import ProgrammingError
 import json
 
 class PGVectorProvider(VectorDBInterface):
@@ -62,34 +63,70 @@ class PGVectorProvider(VectorDBInterface):
         return records
     
     async def get_collection_info(self, collection_name: str) -> dict:
+        collection_exists = await self.is_collection_existed(collection_name)
+        if not collection_exists:
+            return {
+                "table_info": None,
+                "record_count": 0,
+                "dimensions": 0,
+                "indexed": False
+            }
+
         async with self.db_client() as session:
             async with session.begin():
-                
-                table_info_sql = sql_text(f'''
-                    SELECT schemaname, tablename, tableowner, tablespace, hasindexes 
-                    FROM pg_tables 
-                    WHERE tablename = :collection_name
-                ''')
+                try:
+                    table_info_sql = sql_text(f'''
+                        SELECT 
+                            a.schemaname, 
+                            a.tablename, 
+                            a.tableowner, 
+                            a.tablespace, 
+                            a.hasindexes,
+                            b.attndims AS dimensions
+                        FROM pg_tables a
+                        JOIN pg_attribute b ON a.tablename = b.attrelid::regclass::text
+                        WHERE a.tablename = :collection_name
+                        AND b.attname = 'vector'
+                    ''')
 
-                count_sql = sql_text(f'SELECT COUNT(*) FROM {collection_name}')
+                    count_sql = sql_text(f'SELECT COUNT(*) FROM {collection_name}')
+                    
+                    table_info_result = await session.execute(table_info_sql, {"collection_name": collection_name})
+                    table_data = table_info_result.fetchone()
 
-                table_info = await session.execute(table_info_sql, {"collection_name": collection_name})
-                record_count = await session.execute(count_sql)
+                    record_count_result = await session.execute(count_sql)
+                    record_count = record_count_result.scalar_one()
 
-                table_data = table_info.fetchone()
-                if not table_data:
-                    return None
-                
-                return {
-                    "table_info": {
-                        "schemaname": table_data[0],
-                        "tablename": table_data[1],
-                        "tableowner": table_data[2],
-                        "tablespace": table_data[3],
-                        "hasindexes": table_data[4],
-                    },
-                    "record_count": record_count.scalar_one(),
-                }
+                    indexed = await self.is_index_existed(collection_name)
+
+                    if not table_data:
+                        return {
+                            "table_info": None,
+                            "record_count": 0,
+                            "dimensions": 0,
+                            "indexed": False
+                        }
+                    
+                    return {
+                        "table_info": {
+                            "schemaname": table_data[0],
+                            "tablename": table_data[1],
+                            "tableowner": table_data[2],
+                            "tablespace": table_data[3],
+                            "hasindexes": table_data[4],
+                        },
+                        "record_count": record_count,
+                        "dimensions": table_data[5],
+                        "indexed": indexed,
+                    }
+                except ProgrammingError:
+                    self.logger.warning(f"Collection '{collection_name}' not found or query failed.")
+                    return {
+                        "table_info": None,
+                        "record_count": 0,
+                        "dimensions": 0,
+                        "indexed": False
+                    }
             
     async def delete_collection(self, collection_name: str):
         async with self.db_client() as session:

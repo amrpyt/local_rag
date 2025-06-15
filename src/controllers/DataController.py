@@ -41,10 +41,6 @@ class DataController(BaseController):
             orig_file_name=orig_file_name
         )
 
-        # Ensure the file has a .pdf extension if it doesn't already
-        if not cleaned_file_name.lower().endswith('.pdf'):
-            cleaned_file_name += '.pdf'
-
         new_file_path = os.path.join(
             project_path,
             random_key + "_" + cleaned_file_name

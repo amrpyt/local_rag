@@ -18,6 +18,7 @@ import QAPage from './pages/QAPage';
 import AboutPage from './pages/AboutPage.jsx';
 import TestConnectionPage from './pages/TestConnectionPage';
 import StatisticsPage from './pages/StatisticsPage';
+import IndexPage from './pages/IndexPage';
 
 function App() {
   return (
@@ -34,8 +35,7 @@ function App() {
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/upload" element={<UploadPage />} />
                   <Route path="/process" element={<ProcessPage />} />
-                  <Route path="/index/info" element={<IndexInfoPage />} />
-                  <Route path="/index/push" element={<IndexPushPage />} />
+                  <Route path="/index" element={<IndexPage />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/qa" element={<QAPage />} />
                   <Route path="/about" element={<AboutPage />} />
