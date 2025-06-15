@@ -198,41 +198,6 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        <Card data-testid="card-vectordb">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center">
-              <CardTitle className="text-sm font-medium">Vector DB Status</CardTitle>
-              <Database className="ml-2 h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isIndexInfoLoading ? (
-              <div className="flex items-center space-x-2">
-                <Spinner className="h-4 w-4" />
-                <span className="text-sm text-muted-foreground">Loading...</span>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center text-lg">
-                  {indexInfo?.collection_info?.points_count && indexInfo.collection_info.points_count > 0 ? (
-                    <>
-                      <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
-                      <span className="font-medium">Ready</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
-                      <span className="font-medium">Not Indexed</span>
-                    </>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {getProjectName()}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
