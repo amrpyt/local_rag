@@ -9,6 +9,10 @@ import { useIndexInfo } from '../hooks/useIndexInfo';
 import Markdown from 'react-markdown';
 import { Textarea } from '../components/ui/textarea';
 import remarkGfm from 'remark-gfm';
+import { ResponseSignals } from '../constants/signals';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { ErrorMessage } from '../components/ui/error-message';
+import { LoadingIndicator } from '../components/ui/loading-indicator';
 
 interface Message {
   id: string;
@@ -38,11 +42,14 @@ export default function QAPage() {
   const { selectedProject, useMockData } = useProject();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const answerMutation = useAnswer(useMockData);
   const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(selectedProject?.id, useMockData);
+  const { handleApiError, handleException, isSuccessResponse } = useErrorHandler();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,57 +62,59 @@ export default function QAPage() {
     indexInfo.collection_info.vector_count > 0 || 
     indexInfo.collection_info.points_count > 0);
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || answerMutation.isPending || !selectedProject || !isIndexReady) return;
+    if (!input.trim() || !selectedProject) return;
 
-    const userMessage: Message = { id: `user-${Date.now()}`, role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    
-    const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
-    
-    answerMutation.mutate({ projectId: projectId.toString(), text: input }, {
-      onSuccess: (data) => {
-        if (data.signal === 'success' || data.signal === 'rag_answer_success') {
-          // Process the chat history to ensure it has the right format
-          const processedChatHistory = Array.isArray(data.chat_history) ? data.chat_history.map(item => {
-            // Make sure each item has the required structure
-            return {
-              content: item.text || item.content || '',
-              metadata: {
-                source: item.metadata?.source || 'Unknown source',
-                page: item.metadata?.page || undefined
-              }
-            };
-          }) : [];
-          
-          const botMessage: Message = {
-            id: `bot-${Date.now()}`,
-            role: 'bot',
-            content: data.answer,
-            sources: processedChatHistory,
-          };
-          setMessages((prev) => [...prev, botMessage]);
-        } else {
-          const errorMessage: Message = {
-            id: `bot-error-${Date.now()}`,
-            role: 'bot',
-            content: `Sorry, I ran into an error: ${data.signal || 'Unknown error'}`
-          };
-          setMessages((prev) => [...prev, errorMessage]);
-        }
-      },
-      onError: (err: any) => {
-        const errorMessage: Message = {
-          id: `bot-error-${Date.now()}`,
-          role: 'bot',
-          content: `An error occurred: ${err.message || 'Please try again.'}`
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-      }
-    });
+    setError(null);
+    const newUserMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+    };
 
+    setMessages(prev => [...prev, newUserMessage]);
     setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await answerMutation.mutateAsync({
+        projectId: selectedProject.id,
+        text: input,
+      });
+
+      // Check if the response was successful
+      if (isSuccessResponse(response)) {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'bot',
+          content: response.answer || "Sorry, I couldn't generate an answer.",
+          sources: response.sources,
+        };
+        setMessages(prev => [...prev, botMessage]);
+      } else {
+        // Handle error response
+        const errorMsg = handleApiError(response, 'Failed to generate an answer. Please try again.');
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'bot',
+          content: `Sorry, I ran into an error: ${errorMsg}`,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        setError(errorMsg);
+      }
+    } catch (error) {
+      const errorMsg = handleException(error, 'An unexpected error occurred while generating an answer.');
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'bot',
+        content: `Sorry, there was an error processing your question: ${errorMsg}`,
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const MessageBubble = ({ message }: { message: Message }) => (
@@ -145,7 +154,7 @@ export default function QAPage() {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]"> {/* Adjust height based on your layout */}
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       <Card className="flex-1 flex flex-col h-full w-full max-w-4xl mx-auto">
         <CardHeader className="text-center">
             <CardTitle className="text-2xl flex items-center justify-center gap-2">
@@ -158,19 +167,30 @@ export default function QAPage() {
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="flex-1 overflow-y-auto p-4">
+        <CardContent className="flex-1 overflow-y-auto p-4 relative">
+          {isIndexInfoLoading && (
+            <LoadingIndicator text="Loading project information..." />
+          )}
+          
           {!selectedProject && (
-            <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-4 rounded-md mb-4">
-              <AlertCircle className="h-5 w-5" />
-              <p>Please select a project to start asking questions.</p>
-            </div>
+            <ErrorMessage 
+              variant="error" 
+              message="Please select a project to start asking questions." 
+            />
           )}
           
           {selectedProject && !isIndexInfoLoading && !isIndexReady && (
-            <div className="flex items-center gap-2 text-orange-500 bg-orange-500/10 p-4 rounded-md mb-4">
-              <AlertCircle className="h-5 w-5" />
-              <p>This project has no indexed documents. Please process and index documents before asking questions.</p>
-            </div>
+            <ErrorMessage 
+              variant="warning" 
+              message="This project has no indexed documents. Please process and index documents before asking questions." 
+            />
+          )}
+          
+          {error && (
+            <ErrorMessage 
+              message={error} 
+              className="mb-4" 
+            />
           )}
           
           <div className="space-y-4">
@@ -187,7 +207,7 @@ export default function QAPage() {
         </CardContent>
 
         <div className="p-4 border-t bg-background">
-          <form onSubmit={handleSend} className="flex items-center gap-2">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -197,17 +217,17 @@ export default function QAPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend(e);
+                  handleSubmit(e);
                 }
               }}
-              disabled={!selectedProject || answerMutation.isPending || !isIndexReady}
+              disabled={!selectedProject || isLoading}
             />
             <Button 
               type="submit" 
-              disabled={!input.trim() || !selectedProject || answerMutation.isPending || !isIndexReady}
+              disabled={!input.trim() || !selectedProject || isLoading}
               size="icon"
             >
-              {answerMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
            {!selectedProject && (

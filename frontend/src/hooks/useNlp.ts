@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '../api/client'; // Use our configured apiClient
+import { apiClient } from '../lib/api-client';
+import { ResponseSignals } from '../constants/signals';
 
 // Define response shapes based on the PRD
 interface IndexPushResponse {
@@ -15,8 +16,14 @@ interface SearchResponse {
 interface AnswerResponse {
   signal: string;
   answer: string;
-  full_prompt: string;
-  chat_history: any; // Define a more specific type for chat history if possible
+  full_prompt?: string;
+  chat_history?: any; // Define a more specific type for chat history if possible
+  sources?: any[];
+}
+
+interface PushToIndexResponse {
+  signal: string;
+  message: string;
 }
 
 interface ResetIndexResponse {
@@ -47,6 +54,23 @@ const getMockAnswer = (question: string) => {
     }
   }
   return "عفواً، لم أجد إجابة لسؤالك في قاعدة البيانات الوهمية. حاول طرح سؤال آخر.";
+}
+
+const mockAnswer = (text: string) => {
+  return getMockAnswer(text);
+}
+
+const mockSources = () => {
+  return [
+    {
+      content: 'هذا مصدر وهمي للإجابة على سؤالك.',
+      metadata: {
+        file_name: 'mock_source.pdf',
+        page: 1
+      },
+      score: 0.95
+    }
+  ];
 }
 
 const mockDocuments = [
@@ -89,7 +113,7 @@ const mockSearchResults = (query: string) => [
 const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: any; doReset: boolean; useMockData: boolean }): Promise<IndexPushResponse> => {
   if (useMockData) {
     await new Promise(resolve => setTimeout(resolve, 1500));
-    return { signal: 'success', inserted_items_count: Math.floor(Math.random() * 500) + 100 };
+    return { signal: ResponseSignals.VECTORDB_INDEX_SUCCESS, inserted_items_count: Math.floor(Math.random() * 500) + 100 };
   }
   
   // Extract the project ID whether it's an object or a number
@@ -127,31 +151,28 @@ const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: any; 
 const searchIndex = async ({ projectId, text, limit, useMockData }: { projectId: string; text: string; limit?: number; useMockData: boolean }): Promise<SearchResponse> => {
   if (useMockData) {
     await new Promise(resolve => setTimeout(resolve, 700));
-    return { signal: 'success', results: mockSearchResults(text) };
+    return { signal: ResponseSignals.VECTORDB_SEARCH_SUCCESS, results: mockSearchResults(text) };
   }
   const { data } = await apiClient.post<SearchResponse>(`/nlp/index/search/${projectId}`, { text, limit });
   console.log('Search API response:', data);
   return data;
 };
 
-const answerQuestion = async ({ projectId, text, limit, useMockData }: { projectId:string; text: string; limit?: number; useMockData: boolean }): Promise<AnswerResponse> => {
+const answerQuestion = async ({ projectId, text, useMockData }: { projectId: string; text: string; useMockData: boolean }): Promise<AnswerResponse> => {
   if (useMockData) {
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    const specificAnswer = getMockAnswer(text);
-    return { 
-      signal: 'success', 
-      answer: specificAnswer, 
-      full_prompt: `Mock prompt for question: "${text}"`, 
-      chat_history: [
-        {
-          score: 0.99,
-          metadata: { source: 'mock_source.pdf', page: 1 },
-          content: `This is a mock source document snippet related to your question about "${text}".`
-        }
-      ] 
-    };
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    return { signal: ResponseSignals.RAG_ANSWER_SUCCESS, answer: mockAnswer(text), sources: mockSources() };
   }
-  const { data } = await apiClient.post<AnswerResponse>(`/nlp/index/answer/${projectId}`, { text, limit });
+  const { data } = await apiClient.post<AnswerResponse>(`/nlp/index/answer/${projectId}`, { text });
+  return data;
+};
+
+const pushToIndex = async ({ projectId, useMockData }: { projectId: string; useMockData: boolean }): Promise<PushToIndexResponse> => {
+  if (useMockData) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { signal: ResponseSignals.VECTORDB_INDEX_SUCCESS, message: 'Successfully pushed project to index' };
+  }
+  const { data } = await apiClient.post<PushToIndexResponse>(`/nlp/index/push/${projectId}`);
   return data;
 };
 
@@ -179,7 +200,13 @@ export const useSearch = (useMockData = false) => {
 
 export const useAnswer = (useMockData = false) => {
     return useMutation<AnswerResponse, Error, { projectId: string | number; text: string; limit?: number }>({
-        mutationFn: ({ projectId, text, limit }) => answerQuestion({ projectId: String(projectId), text, limit, useMockData }),
+        mutationFn: ({ projectId, text }) => answerQuestion({ projectId: String(projectId), text, useMockData }),
+    });
+};
+
+export const usePushToIndex = (useMockData = false) => {
+    return useMutation<PushToIndexResponse, Error, { projectId: string | number }>({
+        mutationFn: ({ projectId }) => pushToIndex({ projectId: String(projectId), useMockData }),
     });
 };
 

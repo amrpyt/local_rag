@@ -7,6 +7,10 @@ import { AlertCircle, Loader2, Database } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { usePushIndex } from '../hooks/useNlp';
 import { toast } from 'sonner';
+import { ResponseSignals } from '../constants/signals';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { ErrorMessage } from '../components/ui/error-message';
+import { LoadingIndicator } from '../components/ui/loading-indicator';
 
 interface Project {
   id: number;
@@ -16,7 +20,9 @@ interface Project {
 export default function IndexPushPage() {
   const { selectedProject } = useProject();
   const [doReset, setDoReset] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const pushIndexMutation = usePushIndex();
+  const { handleApiError, handleException, isSuccessResponse } = useErrorHandler();
 
   const handlePush = async () => {
     if (!selectedProject) {
@@ -24,6 +30,7 @@ export default function IndexPushPage() {
       return;
     }
 
+    setError(null);
     console.log('Selected Project Type:', typeof selectedProject);
     console.log('Selected Project Value:', selectedProject);
     
@@ -35,16 +42,22 @@ export default function IndexPushPage() {
     console.log('Extracted Project ID:', projectId);
 
     if (isNaN(projectId)) {
-      toast.error('Invalid project ID');
+      const errorMsg = 'Invalid project ID';
+      toast.error(errorMsg);
+      setError(errorMsg);
       return;
     }
 
     pushIndexMutation.mutate({ projectId, doReset }, {
       onSuccess: (data) => {
-        toast.success(`Successfully indexed ${data.inserted_items_count} items.`);
+        if (isSuccessResponse(data)) {
+          toast.success(`Successfully indexed ${data.inserted_items_count} items.`);
+        } else {
+          setError(handleApiError(data, 'Failed to push to index. Please try again.'));
+        }
       },
       onError: (error) => {
-        toast.error(`Failed to push to index: ${error.message}`);
+        setError(handleException(error, 'Failed to push to index. Please try again.'));
       }
     });
   };
@@ -59,10 +72,13 @@ export default function IndexPushPage() {
       </div>
 
       {!selectedProject && (
-        <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-4 rounded-md">
-          <AlertCircle className="h-5 w-5" />
-          <p>Please select a project from the header to push its data to the index.</p>
-        </div>
+        <ErrorMessage 
+          message="Please select a project from the header to push its data to the index." 
+        />
+      )}
+
+      {error && (
+        <ErrorMessage message={error} />
       )}
 
       <Card>
@@ -101,7 +117,15 @@ export default function IndexPushPage() {
         </CardContent>
       </Card>
       
-      {pushIndexMutation.data && (
+      {pushIndexMutation.isLoading && (
+        <Card>
+          <CardContent className="p-6">
+            <LoadingIndicator text="Pushing documents to index..." />
+          </CardContent>
+        </Card>
+      )}
+      
+      {pushIndexMutation.data && !pushIndexMutation.isLoading && (
         <Card>
           <CardHeader>
             <CardTitle>Indexing Complete</CardTitle>

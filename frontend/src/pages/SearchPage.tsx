@@ -8,6 +8,10 @@ import { useProject } from '../context/ProjectContext';
 import { useSearch, useAnswer } from '../hooks/useNlp';
 import { useIndexInfo } from '../hooks/useIndexInfo';
 import { toast } from 'sonner';
+import { ResponseSignals } from '../constants/signals';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { ErrorMessage } from '../components/ui/error-message';
+import { LoadingIndicator } from '../components/ui/loading-indicator';
 
 interface SearchResult {
   text: string;
@@ -31,10 +35,12 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const searchMutation = useSearch(useMockData);
   const answerMutation = useAnswer(useMockData);
   const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(selectedProject?.id, useMockData);
+  const { handleApiError, handleException, isSuccessResponse } = useErrorHandler();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,18 +56,19 @@ export default function SearchPage() {
     setHasSearched(true);
     setResults([]);
     setAnswer(null);
+    setError(null);
 
     const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
     searchMutation.mutate({ projectId, text: query, limit }, {
       onSuccess: (data) => {
-        if (data.signal === 'success' || data.signal === 'vectordb_search_success') {
+        if (isSuccessResponse(data)) {
           setResults(data.results);
         } else {
-          toast.error(data.signal || 'An unknown error occurred during search.');
+          setError(handleApiError(data, 'Search failed. Please try again.'));
         }
       },
       onError: (err: any) => {
-        toast.error(err.message || 'An unexpected error occurred during search.');
+        setError(handleException(err, 'An unexpected error occurred during search.'));
       }
     });
   };
@@ -70,18 +77,19 @@ export default function SearchPage() {
     if (!query.trim() || !selectedProject) return;
 
     setAnswer(null);
+    setError(null);
     const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
 
     answerMutation.mutate({ projectId, text: query, limit }, {
       onSuccess: (data) => {
-        if (data.signal === 'success' || data.signal === 'rag_answer_success') {
+        if (isSuccessResponse(data)) {
           setAnswer(data.answer);
         } else {
-          toast.error(data.signal || 'An unknown error occurred while answering.');
+          setError(handleApiError(data, 'Failed to generate answer. Please try again.'));
         }
       },
       onError: (err: any) => {
-        toast.error(err.message || 'An unexpected error occurred while answering.');
+        setError(handleException(err, 'An unexpected error occurred while answering.'));
       }
     });
   };
@@ -137,14 +145,12 @@ export default function SearchPage() {
       </div>
 
       {!selectedProject ? (
-        <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-4 rounded-md">
-          <AlertCircle className="h-5 w-5" />
-          <p>Please select a project to start searching.</p>
-        </div>
+        <ErrorMessage 
+          message="Please select a project to start searching."
+        />
       ) : isIndexInfoLoading ? (
         <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <LoadingIndicator text="Loading project information..." />
         </div>
       ) : isIndexReady ? (
         <form onSubmit={handleSearch} className="flex items-start gap-4">
@@ -180,14 +186,18 @@ export default function SearchPage() {
           </Button>
         </form>
       ) : (
-        <div className="flex items-center gap-2 text-orange-500 bg-orange-500/10 p-4 rounded-md">
-          <AlertCircle className="h-5 w-5" />
-          <p>This project has no indexed documents. Please process documents before searching.</p>
-        </div>
+        <ErrorMessage 
+          variant="warning"
+          message="This project has no indexed documents. Please process documents before searching."
+        />
       )}
 
+      {error && <ErrorMessage message={error} />}
+
       <div className="space-y-4">
-        {searchMutation.isLoading && Array.from({ length: limit }).map((_, i) => <ResultSkeleton key={i} />)}
+        {searchMutation.isLoading && (
+          <LoadingIndicator text="Searching documents..." />
+        )}
 
         {!searchMutation.isLoading && hasSearched && results.length > 0 && (
           <div className="space-y-4">
@@ -221,9 +231,7 @@ export default function SearchPage() {
             <CardTitle>Generated Answer</CardTitle>
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full mt-2" />
-            <Skeleton className="h-4 w-3/4 mt-2" />
+            <LoadingIndicator text="Generating answer..." />
           </CardContent>
         </Card>
       )}
