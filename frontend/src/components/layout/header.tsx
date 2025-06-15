@@ -37,7 +37,7 @@ export function Header({ className }: HeaderProps) {
       case '/about':
         return 'About';
       default:
-        return 'Mini-RAG';
+        return 'Rafiq';
     }
   };
 

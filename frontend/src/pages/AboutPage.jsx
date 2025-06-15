@@ -5,7 +5,7 @@ export default function AboutPage() {
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">About Mini-RAG</h2>
+        <h2 className="text-3xl font-bold tracking-tight">About Rafiq</h2>
         <p className="text-muted-foreground mt-2">
           Learn about this project and how it works
         </p>
@@ -13,11 +13,11 @@ export default function AboutPage() {
       
       <div className="space-y-6">
         <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
-          <h3 className="text-xl font-semibold mb-3">What is Mini-RAG?</h3>
+          <h3 className="text-xl font-semibold mb-3">What is Rafiq?</h3>
           <p className="text-muted-foreground">
-            Mini-RAG is a minimal implementation of the Retrieval-Augmented Generation (RAG) model for question answering. 
-            This educational project allows you to upload documents, process them into chunks, and perform semantic search 
-            and question answering over your own data.
+            Rafiq (رفيق) means "companion" in Arabic. It is an advanced implementation of the Retrieval-Augmented Generation (RAG) model for question answering. 
+            This project allows you to upload documents, process them into chunks, and perform semantic search 
+            and question answering over your own data, making it your perfect knowledge companion.
           </p>
         </div>
         

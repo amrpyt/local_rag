@@ -156,7 +156,7 @@ export default function DashboardPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
           <p className="text-muted-foreground">
-            Welcome to Mini-RAG, a personal document question answering system
+            Welcome to Rafiq, a personal document question answering system
           </p>
         </div>
       </div>

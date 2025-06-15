@@ -108,7 +108,7 @@ export function Sidebar({ className }: SidebarProps) {
                   isSidebarOpen ? "opacity-100" : "opacity-0"
               )}
             >
-              Mini-RAG
+              Rafiq
             </h1>
             <Button 
               variant="ghost" 
