@@ -18,6 +18,8 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://localhost:8008",
+    "http://173.212.254.228:3001",
     "https://*",
     "http://*",
 ]

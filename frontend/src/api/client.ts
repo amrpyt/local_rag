@@ -3,7 +3,7 @@ import axios from 'axios';
 // API client configuration
 // Create an axios instance with the backend URL
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api/v1', // Direct connection to the backend
+  baseURL: 'http://173.212.254.228:8008/api/v1', // Direct connection to the backend
   headers: {
     'Content-Type': 'application/json',
   },
