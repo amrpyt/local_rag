@@ -29,13 +29,24 @@ import MockDataSwitch from '../components/MockDataSwitch';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
 
+// Define the Project type to match the API response
+interface Project {
+  id: number;
+  name: string;
+}
+
 // Define the index info response type
 interface IndexInfo {
   signal: string;
   collection_info: {
-    vector_count: number;
-    indexed_vector_count: number;
-    points_count: number;
+    vector_count?: number;
+    indexed_vector_count?: number;
+    points_count?: number;
+    record_count?: number;
+    table_info?: {
+      tablename?: string;
+      hasindexes?: boolean;
+    };
   };
 }
 
@@ -61,10 +72,11 @@ const fetchIndexInfo = async (projectId: string, useMockData: boolean): Promise<
 const useIndexInfo = (projectId: string | number | null, useMockData: boolean) => {
     return useQuery<IndexInfo, Error>({
       queryKey: ['indexInfo', projectId, useMockData],
-      queryFn: () => fetchIndexInfo(String(projectId), useMockData),
+      queryFn: () => fetchIndexInfo(projectId ? String(projectId) : '', useMockData),
       enabled: !!projectId,
       retry: useMockData ? 0 : 2,
-      refetchInterval: useMockData ? false : 5000,
+      refetchInterval: false,
+      staleTime: 60000,
     });
 };
 
@@ -75,7 +87,7 @@ export default function DashboardPage() {
   // Default to false if useMockData is not available in ProjectContext
   const useMockData = (useProject() as any).useMockData || false;
   
-  const projectId = selectedProject?.id || null;
+  const projectId = selectedProject && typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
   const { data: indexInfo, isLoading: isIndexInfoLoading } = useIndexInfo(projectId, useMockData);
   
   if (!selectedProject) {
@@ -189,7 +201,7 @@ export default function DashboardPage() {
             ) : (
               <>
                 <div className="flex items-center text-lg">
-                  {indexInfo?.collection_info?.points_count > 0 ? (
+                  {indexInfo?.collection_info?.points_count && indexInfo.collection_info.points_count > 0 ? (
                     <>
                       <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
                       <span className="font-medium">Ready</span>
