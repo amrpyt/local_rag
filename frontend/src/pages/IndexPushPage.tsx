@@ -8,6 +8,11 @@ import { useProject } from '../context/ProjectContext';
 import { usePushIndex } from '../hooks/useNlp';
 import { toast } from 'sonner';
 
+interface Project {
+  id: number;
+  name: string;
+}
+
 export default function IndexPushPage() {
   const { selectedProject } = useProject();
   const [doReset, setDoReset] = useState(false);
@@ -19,7 +24,22 @@ export default function IndexPushPage() {
       return;
     }
 
-    pushIndexMutation.mutate({ projectId: selectedProject, doReset }, {
+    console.log('Selected Project Type:', typeof selectedProject);
+    console.log('Selected Project Value:', selectedProject);
+    
+    // Extract project ID
+    const projectId = typeof selectedProject === 'object' && selectedProject !== null 
+      ? (selectedProject as Project).id 
+      : parseInt(String(selectedProject), 10);
+    
+    console.log('Extracted Project ID:', projectId);
+
+    if (isNaN(projectId)) {
+      toast.error('Invalid project ID');
+      return;
+    }
+
+    pushIndexMutation.mutate({ projectId, doReset }, {
       onSuccess: (data) => {
         toast.success(`Successfully indexed ${data.inserted_items_count} items.`);
       },

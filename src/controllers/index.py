@@ -28,7 +28,7 @@ async def get_project_index_info_controller(request: Request, project_id: int):
         "collection_info": collection_info
     }
 
-async def push_project_index_controller(request: Request, project_id: int, do_reset: bool):
+async def push_project_index_controller(request: Request, project_id: int, do_reset: int):
     project_model = await ProjectModel.create_instance(
         db_client=request.app.db_client
     )
@@ -64,7 +64,7 @@ async def push_project_index_controller(request: Request, project_id: int, do_re
     await request.app.vectordb_client.create_collection(
         collection_name=collection_name,
         embedding_size=request.app.embedding_client.embedding_size,
-        do_reset=do_reset,
+        do_reset=bool(do_reset),
     )
 
     total_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)

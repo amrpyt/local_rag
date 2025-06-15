@@ -86,12 +86,41 @@ const mockSearchResults = (query: string) => [
 ];
 
 // Define API call functions
-const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: string; doReset: boolean; useMockData: boolean }): Promise<IndexPushResponse> => {
+const pushIndex = async ({ projectId, doReset, useMockData }: { projectId: any; doReset: boolean; useMockData: boolean }): Promise<IndexPushResponse> => {
   if (useMockData) {
     await new Promise(resolve => setTimeout(resolve, 1500));
     return { signal: 'success', inserted_items_count: Math.floor(Math.random() * 500) + 100 };
   }
-  const { data } = await apiClient.post<IndexPushResponse>(`/nlp/index/push/${projectId}`, { do_reset: doReset ? 1 : 0 });
+  
+  // Extract the project ID whether it's an object or a number
+  let numericProjectId;
+  
+  if (typeof projectId === 'object' && projectId !== null && projectId.id) {
+    numericProjectId = projectId.id;
+    console.log('Project ID from object:', numericProjectId);
+  } else {
+    try {
+      numericProjectId = parseInt(String(projectId), 10);
+      console.log('Project ID from value:', numericProjectId);
+    } catch (e) {
+      console.error('Failed to parse project ID:', e);
+      throw new Error('Invalid project ID format');
+    }
+  }
+  
+  // Make sure we have a valid number
+  if (isNaN(numericProjectId)) {
+    console.error('Invalid project ID:', projectId);
+    throw new Error('Invalid project ID');
+  }
+  
+  console.log('Final project ID for API call:', numericProjectId);
+  
+  const { data } = await apiClient.post<IndexPushResponse>(
+    `/nlp/index/push/${numericProjectId}`, 
+    { do_reset: doReset ? 1 : 0 }
+  );
+  
   return data;
 };
 
@@ -101,6 +130,7 @@ const searchIndex = async ({ projectId, text, limit, useMockData }: { projectId:
     return { signal: 'success', results: mockSearchResults(text) };
   }
   const { data } = await apiClient.post<SearchResponse>(`/nlp/index/search/${projectId}`, { text, limit });
+  console.log('Search API response:', data);
   return data;
 };
 

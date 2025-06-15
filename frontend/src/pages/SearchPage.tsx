@@ -54,7 +54,7 @@ export default function SearchPage() {
     const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
     searchMutation.mutate({ projectId, text: query, limit }, {
       onSuccess: (data) => {
-        if (data.signal === 'success') {
+        if (data.signal === 'success' || data.signal === 'vectordb_search_success') {
           setResults(data.results);
         } else {
           toast.error(data.signal || 'An unknown error occurred during search.');
@@ -74,7 +74,7 @@ export default function SearchPage() {
 
     answerMutation.mutate({ projectId, text: query, limit }, {
       onSuccess: (data) => {
-        if (data.signal === 'success') {
+        if (data.signal === 'success' || data.signal === 'rag_answer_success') {
           setAnswer(data.answer);
         } else {
           toast.error(data.signal || 'An unknown error occurred while answering.');

@@ -66,12 +66,24 @@ export default function QAPage() {
     
     answerMutation.mutate({ projectId: projectId.toString(), text: input }, {
       onSuccess: (data) => {
-        if (data.signal === 'success') {
+        if (data.signal === 'success' || data.signal === 'rag_answer_success') {
+          // Process the chat history to ensure it has the right format
+          const processedChatHistory = Array.isArray(data.chat_history) ? data.chat_history.map(item => {
+            // Make sure each item has the required structure
+            return {
+              content: item.text || item.content || '',
+              metadata: {
+                source: item.metadata?.source || 'Unknown source',
+                page: item.metadata?.page || undefined
+              }
+            };
+          }) : [];
+          
           const botMessage: Message = {
             id: `bot-${Date.now()}`,
             role: 'bot',
             content: data.answer,
-            sources: data.chat_history || [],
+            sources: processedChatHistory,
           };
           setMessages((prev) => [...prev, botMessage]);
         } else {
@@ -114,10 +126,10 @@ export default function QAPage() {
               {message.sources.map((source, index) => (
                 <div key={index} className="text-xs bg-background/50 p-1.5 rounded-md">
                    <p className="font-bold">
-                    {source.metadata.source}
-                    {source.metadata.page && ` (Page ${source.metadata.page})`}
+                    {source.metadata?.source || 'Unknown source'}
+                    {source.metadata?.page && ` (Page ${source.metadata.page})`}
                   </p>
-                  <p className="italic opacity-80 line-clamp-2">"{source.content}"</p>
+                  <p className="italic opacity-80 line-clamp-2">"{source.content || 'No content available'}"</p>
                 </div>
               ))}
             </div>
