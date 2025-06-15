@@ -47,58 +47,31 @@ export const createProjectAPI = async (name: string): Promise<{id: number, name:
   }
 };
 
-export interface Statistics {
-  totalDocuments: number;
-  totalQueries: number;
-  documentTypes: { type: string; count: number }[];
-  queries_over_time: { date: string; count: number }[];
-}
-
-export const fetchStatistics = async (projectId: string): Promise<Statistics> => {
-  try {
-    const response = await apiClient.get(`/statistics/${projectId}`);
-    const data = response.data;
-    // The backend now provides the full statistics object
-    return {
-      totalDocuments: data.total_documents || 0,
-      totalQueries: data.total_queries || 0,
-      documentTypes: data.document_types || [],
-      queries_over_time: data.queries_over_time || [],
-    };
-  } catch (error) {
-    console.error("Failed to fetch statistics:", error);
-    return {
-      totalDocuments: 0,
-      totalQueries: 0,
-      documentTypes: [],
-      queries_over_time: []
-    };
-  }
-};
-
+// Define the index info response type
 export interface IndexInfo {
-  signal?: string;
-  collection_info?: { // Make optional to handle different signals
-    points_count: number;
-    table_info: any;
-  };
+  signal: string;
+  collection_info: any;
 }
 
-export const fetchIndexInfo = async (projectId: string): Promise<IndexInfo> => {
+/**
+ * Fetch index information for a specific project
+ * @param projectId - The ID of the project to fetch index info for
+ * @returns The index information
+ */
+export async function fetchIndexInfo(projectId: string): Promise<IndexInfo> {
   try {
-    const response = await apiClient.get(`/nlp/index/info/${projectId}`);
-    return response.data;
+    const { data } = await apiClient.get(`/nlp/index/info/${projectId}`);
+    return data;
   } catch (error) {
-    console.error("Failed to fetch index info:", error);
-    throw error;
+    console.error('Error fetching index info:', error);
+    throw new Error('Failed to fetch index information');
   }
-};
+}
 
 export interface SearchResult {
-  id: string;
+  text: string;
   score: number;
-  payload: {
-    text: string;
+  payload?: {
     file_name: string;
     [key: string]: any;
   };
@@ -111,7 +84,7 @@ export interface SearchResponse {
 
 export const searchDocuments = async (projectId: string, query: string, limit: number): Promise<SearchResponse> => {
   try {
-    const response = await apiClient.post(`/nlp/search/${projectId}`, {
+    const response = await apiClient.post(`/nlp/index/search/${projectId}`, {
       text: query,
       limit: limit,
     });
@@ -125,12 +98,13 @@ export const searchDocuments = async (projectId: string, query: string, limit: n
 export interface QAResult {
   signal?: string;
   answer: string;
-  prompt: string;
+  full_prompt: string;
+  chat_history: any;
 }
 
-export const askQuestion = async (projectId: string, query: string): Promise<QAResult> => {
+export const answerQuestion = async (projectId: string, query: string, limit: number): Promise<QAResult> => {
   try {
-    const response = await apiClient.post(`/nlp/answer/${projectId}`, { text: query });
+    const response = await apiClient.post(`/nlp/index/answer/${projectId}`, { text: query, limit });
     return response.data;
   } catch (error) {
     console.error("Failed to ask question:", error);

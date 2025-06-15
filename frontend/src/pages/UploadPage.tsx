@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '../components/ui/button';
-import { Upload, File, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, Loader2, FileText, Link, Files } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import apiClient from '../api/client';
 import { toast } from 'sonner';
+import { EmptyState } from '../components/ui/empty-state';
 
 export default function UploadPage() {
   const { selectedProject } = useProject();
@@ -17,8 +18,10 @@ export default function UploadPage() {
     }))]);
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
+    noClick: true,
+    noKeyboard: true,
     accept: {
       'application/pdf': ['.pdf'],
       'text/plain': ['.txt'],
@@ -41,7 +44,7 @@ export default function UploadPage() {
     const uploadPromises = files.map(file => {
       const formData = new FormData();
       formData.append('file', file);
-      return apiClient.post(`/data/upload/${selectedProject}`, formData, {
+      return apiClient.post(`/data/upload/${selectedProject.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     });
@@ -77,11 +80,11 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 flex flex-col items-center">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Upload Documents</h2>
-        <p className="text-muted-foreground mt-2">
-          Upload PDF documents to be processed and indexed for question answering.
+        <h2 className="text-3xl font-bold tracking-tight text-center">Upload Documents</h2>
+        <p className="text-muted-foreground mt-2 text-center">
+          Upload PDF or TXT documents to be processed and indexed for question answering.
         </p>
       </div>
 
@@ -92,32 +95,23 @@ export default function UploadPage() {
         </div>
       )}
 
-      <div 
-        {...getRootProps()}
-        className={`p-10 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}
-          ${!selectedProject && 'bg-muted/50 cursor-not-allowed'}
-        `}
-      >
-        <input 
-          {...getInputProps()} 
-          disabled={!selectedProject} 
-          style={{ display: 'block', position: 'relative', opacity: 1, width: '100%', height: '40px' }}
-          data-testid="file-upload-input"
-        />
-        <div className="flex flex-col items-center justify-center gap-4">
-          <Upload className="h-12 w-12 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            {isDragActive ? 'Drop the files here ...' : "Drag 'n' drop PDF or TXT files here, or click to select"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            (Only *.pdf and *.txt files will be accepted)
-          </p>
-        </div>
+      <div {...getRootProps({ className: `w-full flex justify-center ${isDragActive ? 'border-primary bg-primary/10' : ''}` })}>
+        <input {...getInputProps()} disabled={!selectedProject} />
+        {files.length === 0 && selectedProject && (
+            <EmptyState
+                title="No Documents Uploaded"
+                description="Drag 'n' drop PDF or TXT files here, or click the button below to select files."
+                icons={[FileText, Link, Files]}
+                action={{
+                    label: "Choose Files",
+                    onClick: open,
+                }}
+            />
+        )}
       </div>
 
       {files.length > 0 && (
-        <div>
+        <div className="w-full max-w-[620px]">
           <h3 className="text-lg font-medium mb-2">Files to Upload:</h3>
           <ul className="space-y-2">
             {files.map((file, index) => (
@@ -142,7 +136,7 @@ export default function UploadPage() {
                 Uploading...
               </>
             ) : (
-              `Upload ${files.length} File(s) to Project ${selectedProject}`
+              `Upload ${files.length} File(s) to Project ${selectedProject?.name}`
             )}
           </Button>
         </div>

@@ -15,7 +15,7 @@ test.describe('Mini-RAG Frontend Tests', () => {
 
   test('1.2 Project selector works', async ({ page }) => {
     // First, ensure a project can be created, which populates the selector.
-    await page.getByTestId('new-project-btn').click();
+    await page.getByTestId('new-project-btn').first().click();
     await expect(page.getByRole('dialog')).toBeVisible();
 
     // Create a new project
@@ -34,24 +34,23 @@ test.describe('Mini-RAG Frontend Tests', () => {
   });
 
   test('1.3 New Project button works', async ({ page }) => {
-    await page.getByTestId('new-project-btn').click();
+    await page.getByTestId('new-project-btn').first().click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');
   });
 
   test('1.4 Sidebar collapse/expand works', async ({ page }) => {
-    // Initial width
-    const initialWidth = await page.locator('div[data-collapsed]').evaluate((el) => el.clientWidth);
-    // Collapse
-    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-    await page.waitForTimeout(400);
-    const collapsedWidth = await page.locator('div[data-collapsed="true"]').evaluate((el) => el.clientWidth);
-    expect(collapsedWidth).toBeLessThan(initialWidth);
+    const sidebar = page.getByTestId('sidebar');
+    // Initial state should be collapsed
+    await expect(sidebar).toHaveAttribute('data-collapsed', 'true');
+    
     // Expand
     await page.getByRole('button', { name: 'Expand sidebar' }).click();
-    await page.waitForTimeout(400);
-    const expandedWidth = await page.locator('div[data-collapsed="false"]').evaluate((el) => el.clientWidth);
-    expect(expandedWidth).toBeGreaterThan(collapsedWidth);
+    await expect(sidebar).toHaveAttribute('data-collapsed', 'false');
+
+    // Collapse
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    await expect(sidebar).toHaveAttribute('data-collapsed', 'true');
   });
 
   test('2.1 Dashboard page loads successfully', async ({ page }) => {

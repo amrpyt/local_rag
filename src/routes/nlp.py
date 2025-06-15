@@ -14,7 +14,7 @@ nlp_router = APIRouter(
     tags=["api_v1", "nlp"],
 )
 
-@nlp_router.post("/search/{project_id}")
+@nlp_router.post("/index/search/{project_id}")
 async def search_index(request: Request, project_id: int, search_request: SearchRequest):
     
     project_model = await ProjectModel.create_instance(
@@ -48,11 +48,11 @@ async def search_index(request: Request, project_id: int, search_request: Search
     return JSONResponse(
         content={
             "signal": ResponseSignal.VECTORDB_SEARCH_SUCCESS.value,
-            "results": [ result.dict()  for result in results ]
+            "results": results
         }
     )
 
-@nlp_router.post("/answer/{project_id}")
+@nlp_router.post("/index/answer/{project_id}")
 async def answer_rag(request: Request, project_id: int, search_request: SearchRequest):
     
     project_model = await ProjectModel.create_instance(

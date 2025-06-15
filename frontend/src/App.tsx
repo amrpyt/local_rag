@@ -2,10 +2,11 @@ import { Route, Routes } from 'react-router-dom';
 import { Sidebar } from './components/layout/sidebar';
 import { Header } from './components/layout/header';
 import { ProjectProvider } from './context/ProjectContext.jsx';
+import { LayoutProvider, useLayout } from './context/LayoutContext.tsx';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ErrorBanner } from './components/layout/ErrorBanner';
-import { LayoutProvider } from './context/LayoutContext';
+import { cn } from './lib/utils';
 
 // Import pages with .tsx extension
 import DashboardPage from './pages/DashboardPage';
@@ -17,7 +18,6 @@ import SearchPage from './pages/SearchPage';
 import QAPage from './pages/QAPage';
 import AboutPage from './pages/AboutPage.jsx';
 import TestConnectionPage from './pages/TestConnectionPage';
-import StatisticsPage from './pages/StatisticsPage';
 import IndexPage from './pages/IndexPage';
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
           <ErrorBanner />
           <div className="flex h-screen bg-background">
             <Sidebar />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
               <Header />
               <main className="flex-1 p-8 overflow-y-auto">
                 <Routes>
@@ -40,7 +40,6 @@ function App() {
                   <Route path="/qa" element={<QAPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/test" element={<TestConnectionPage />} />
-                  <Route path="/statistics" element={<StatisticsPage />} />
                 </Routes>
               </main>
             </div>

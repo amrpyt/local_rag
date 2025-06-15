@@ -1,28 +1,76 @@
-# Product Requirements Document (PRD) – Mini-RAG Front-End Revamp
+# Product Requirements Document (PRD) for mini-rag
 
-## 1. Project Overview
-Mini-RAG is a Retrieval-Augmented Generation (RAG) platform that lets users ingest documents, index them in a vector database and query them via semantic search or question-answering. A FastAPI back-end already exposes REST endpoints (see section 3). The goal of this PRD is to define a modern, production-quality front-end that surfaces these capabilities through an intuitive UI.
+## Project Overview
 
-## 2. Problem Statement
-While the back-end is feature-complete, the existing React front-end is experimental and suffers from:
-1. Inconsistent visual design and navigation.
-2. Unclear information architecture; new users struggle to discover features.
-3. Fragile API integration and poor error handling.
-4. Limited responsiveness and accessibility.
+**mini-rag** is a minimal implementation of the Retrieval-Augmented Generation (RAG) model for question answering. The project allows users to upload documents, process them into chunks, index them into a vector database, and perform semantic search and question answering over the indexed data. It is designed as an educational project, with step-by-step explanations available via a set of Arabic YouTube videos.
 
-## 3. Back-End API Summary (v1)
-| # | Endpoint | Method | Purpose |
-|---|-----------|--------|---------|
-|1|`/api/v1/`|GET|Application name & version (health-check).|
-|2|`/api/v1/projects/`|GET|List all project IDs.|
-|3|`/api/v1/data/upload/{project_id}`|POST|Upload a file to a project.|
-|4|`/api/v1/data/process/{project_id}`|POST|Split uploaded files into chunks and store them.| 
-|5|`/api/v1/nlp/index/push/{project_id}`|POST|Push processed chunks to vector DB.|
-|6|`/api/v1/nlp/index/info/{project_id}`|GET|Retrieve collection meta-data.| 
-|7|`/api/v1/nlp/index/search/{project_id}`|POST|Semantic search across indexed chunks.| 
-|8|`/api/v1/nlp/index/answer/{project_id}`|POST|RAG question answering.| 
+## Project Goals
 
-Authentication is currently open; future versions may require API tokens.
+1. Create a simple, functional RAG application with a clean user interface
+2. Ensure all API endpoints work correctly according to the documentation
+3. Make the application easy to understand and use
+4. Implement the MVP features without any unnecessary complexity
+
+## API Endpoints
+
+### 1. Welcome Endpoint
+- **URL:** `/api/v1/`
+- **Method:** `GET`
+- **Description:** Returns the application name and version.
+
+### 2. List All Projects
+- **URL:** `/api/v1/projects/`
+- **Method:** `GET`
+- **Description:** Returns a list of all project IDs.
+
+### 3. Upload Data
+- **URL:** `/api/v1/data/upload/{project_id}`
+- **Method:** `POST`
+- **Description:** Upload a file to a specific project.
+
+### 4. Process Data
+- **URL:** `/api/v1/data/process/{project_id}`
+- **Method:** `POST`
+- **Description:** Process uploaded files for a project, splitting them into chunks and storing them for later retrieval and search.
+
+### 5. Index Push
+- **URL:** `/api/v1/nlp/index/push/{project_id}`
+- **Method:** `POST`
+- **Description:** Indexes the processed chunks of a project into the vector database.
+
+### 6. Index Info
+- **URL:** `/api/v1/nlp/index/info/{project_id}`
+- **Method:** `GET`
+- **Description:** Retrieves information about the vector database collection for a project.
+
+### 7. Index Search
+- **URL:** `/api/v1/nlp/index/search/{project_id}`
+- **Method:** `POST`
+- **Description:** Performs a semantic search over the indexed data for a project.
+
+### 8. Index Answer (RAG)
+- **URL:** `/api/v1/nlp/index/answer/{project_id}`
+- **Method:** `POST`
+- **Description:** Answers a question using Retrieval-Augmented Generation (RAG) over the indexed data for a project.
+
+## Required Features
+
+1. User should be able to create or select a project
+2. User should be able to upload documents to a project
+3. User should be able to process documents into chunks
+4. User should be able to index chunks into the vector database
+5. User should be able to search for relevant information in the indexed documents
+6. User should be able to ask questions and get answers based on the indexed documents
+7. User should be able to see the status of their projects and documents
+
+## Technical Requirements
+
+1. Backend built with FastAPI
+2. Frontend built with React
+3. Vector database for storing and retrieving document embeddings
+4. LLM integration for generating answers to questions
+5. Document processing pipeline for extracting text and creating chunks
+6. API endpoints for all required functionality
 
 ## 4. Vision & Goals
 1. **Delightful UX** – Provide a polished interface enabling technical and non-technical users to interact with Mini-RAG in <2 clicks.

@@ -43,6 +43,18 @@ class ChunkModel(BaseDataModel):
             await session.commit()
         return len(chunks)
 
+    async def insert_many_chunks_and_get_ids(self, chunks: list, batch_size: int=100):
+        inserted_ids = []
+        async with self.db_client() as session:
+            async with session.begin():
+                for i in range(0, len(chunks), batch_size):
+                    batch = chunks[i:i+batch_size]
+                    session.add_all(batch)
+            await session.commit()
+            # After committing, the IDs are populated
+            inserted_ids = [chunk.chunk_id for chunk in chunks]
+        return inserted_ids
+
     async def delete_chunks_by_project_id(self, project_id: ObjectId):
         async with self.db_client() as session:
             stmt = delete(DataChunk).where(DataChunk.chunk_project_id == project_id)

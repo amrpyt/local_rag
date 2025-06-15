@@ -314,20 +314,31 @@ class PGVectorProvider(VectorDBInterface):
         vector = "[" + ",".join([ str(v) for v in vector ]) + "]"
         async with self.db_client() as session:
             async with session.begin():
-                search_sql = sql_text(f'SELECT {PgVectorTableSchemeEnums.TEXT.value} as text, 1 - ({PgVectorTableSchemeEnums.VECTOR.value} <=> :vector) as score'
-                                      f' FROM {collection_name}'
-                                      ' ORDER BY score DESC '
-                                      f'LIMIT {limit}'
-                                      )
+                search_sql = sql_text(f"""
+                    SELECT 
+                        t2.chunk_text as text, 
+                        1 - (t1.vector <=> :vector) as score,
+                        t2.chunk_metadata,
+                        t3.asset_name as file_name
+                    FROM {collection_name} t1
+                    JOIN chunks t2 ON t1.chunk_id = t2.chunk_id
+                    JOIN assets t3 ON t2.chunk_asset_id = t3.asset_id
+                    ORDER BY score DESC
+                    LIMIT {limit}
+                """)
                 
                 result = await session.execute(search_sql, {"vector": vector})
 
                 records = result.fetchall()
 
                 return [
-                    RetrievedDocument(
-                        text=record.text,
-                        score=record.score
-                    )
+                    {
+                        "text": record.text,
+                        "score": record.score,
+                        "payload": {
+                            "file_name": record.file_name,
+                            "metadata": record.chunk_metadata,
+                        }
+                    }
                     for record in records
                 ]

@@ -39,7 +39,7 @@ const DirectApiTest = () => {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p><strong>Current Project:</strong> {selectedProject ? `Project ${selectedProject}` : 'None'}</p>
+            <p><strong>Current Project:</strong> {selectedProject ? `Project ${typeof selectedProject === 'object' ? selectedProject.name : selectedProject}` : 'None'}</p>
             <p><strong>Status:</strong> {apiStatus}</p>
             
             {error && (

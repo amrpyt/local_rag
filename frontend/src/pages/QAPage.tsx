@@ -1,20 +1,30 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
-import { Send, User, Bot, Loader2, AlertCircle, Sparkles, MessageSquare, Info } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { Send, User, Bot, Loader2, Sparkles, MessageSquare } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import { askQuestion, QAResult, SearchResult, fetchIndexInfo } from '../api/db-client';
+import { useAnswer } from '../hooks/useNlp';
 import Markdown from 'react-markdown';
-import { SplineSceneBasic } from '../components/ui/demo';
+import { Textarea } from '../components/ui/textarea';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
+  id: string;
   role: 'user' | 'bot';
   content: string;
-  prompt?: string;
-  error?: boolean;
+  sources?: Answer['sources'];
+}
+
+interface Answer {
+  answer: string;
+  sources: Array<{
+    content: string;
+    metadata: {
+      source: string;
+      page?: number;
+    };
+  }>;
 }
 
 /*
@@ -24,38 +34,13 @@ interface Message {
   the Q&A form if the index is not ready.
 */
 export default function QAPage() {
-  const { selectedProject } = useProject();
+  const { selectedProject, useMockData } = useProject();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isIndexReady, setIsIndexReady] = useState(false);
-  const [isCheckingIndex, setIsCheckingIndex] = useState(true);
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    const checkIndexStatus = async () => {
-      if (!selectedProject) {
-        setIsCheckingIndex(false);
-        setIsIndexReady(false);
-        return;
-      }
-      setIsCheckingIndex(true);
-      try {
-        const info = await fetchIndexInfo(selectedProject.toString());
-        if (info && info.collection_info && info.collection_info.points_count > 0) {
-          setIsIndexReady(true);
-        } else {
-          setIsIndexReady(false);
-        }
-      } catch (error) {
-        console.error("Failed to fetch index status:", error);
-        setIsIndexReady(false);
-      } finally {
-        setIsCheckingIndex(false);
-      }
-    };
-    checkIndexStatus();
-  }, [selectedProject]);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const answerMutation = useAnswer(useMockData);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,126 +48,140 @@ export default function QAPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || !selectedProject) return;
+    if (!input.trim() || answerMutation.isPending || !selectedProject) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { id: `user-${Date.now()}`, role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await askQuestion(selectedProject.toString(), input);
-
-      if (response && response.signal === 'rag_answer_success') {
-      const botMessage: Message = { 
-        role: 'bot', 
-        content: response.answer,
-          prompt: response.full_prompt
-      };
-      setMessages((prev) => [...prev, botMessage]);
-      } else {
-        const errorMessage = response?.signal || 'Sorry, I ran into an error.';
-        const errorBotMessage: Message = { role: 'bot', content: errorMessage, error: true };
-        setMessages((prev) => [...prev, errorBotMessage]);
+    
+    const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
+    
+    answerMutation.mutate({ projectId: projectId.toString(), text: input }, {
+      onSuccess: (data) => {
+        if (data.signal === 'success') {
+          const botMessage: Message = {
+            id: `bot-${Date.now()}`,
+            role: 'bot',
+            content: data.answer,
+            sources: data.chat_history || [],
+          };
+          setMessages((prev) => [...prev, botMessage]);
+        } else {
+          const errorMessage: Message = {
+            id: `bot-error-${Date.now()}`,
+            role: 'bot',
+            content: `Sorry, I ran into an error: ${data.signal || 'Unknown error'}`
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
+      },
+      onError: (err: any) => {
+        const errorMessage: Message = {
+          id: `bot-error-${Date.now()}`,
+          role: 'bot',
+          content: `An error occurred: ${err.message || 'Please try again.'}`
+        };
+        setMessages((prev) => [...prev, errorMessage]);
       }
-    } catch (err) {
-      const errorBotMessage: Message = { role: 'bot', content: 'Sorry, I ran into an error. Please try again.', error: true };
-      setMessages((prev) => [...prev, errorBotMessage]);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    });
+
+    setInput('');
   };
 
-  const Message = ({ message }: { message: Message }) => (
-    <div className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
+  const MessageBubble = ({ message }: { message: Message }) => (
+    <div className={`flex items-start gap-4 my-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
       {message.role === 'bot' && (
-        <Avatar>
-          <AvatarFallback><Bot /></AvatarFallback>
+        <Avatar className="w-8 h-8">
+          <AvatarFallback><Bot className="w-5 h-5" /></AvatarFallback>
         </Avatar>
       )}
-      <div className={`max-w-[75%] rounded-lg p-4 ${message.role === 'user' ? 'bg-primary text-primary-foreground' : (message.error ? 'bg-destructive/10 border border-destructive' : 'bg-muted')}`}>
-        <div className="prose text-sm max-w-none">
-          <Markdown>{message.content}</Markdown>
+      <div className={`flex flex-col max-w-[80%] rounded-lg p-3 ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+        <div className="prose prose-sm max-w-none dark:prose-invert">
+          <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
         </div>
-        {message.prompt && (
-          <Accordion type="single" collapsible className="w-full mt-2">
-            <AccordionItem value="item-1">
-              <AccordionTrigger className="text-xs flex items-center gap-1">
-                <Info className="h-3 w-3" /> View Prompt
-              </AccordionTrigger>
-              <AccordionContent className="text-xs bg-background/50 p-2 rounded prose-sm">
-                <pre className="whitespace-pre-wrap font-mono">{message.prompt}</pre>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+        {message.role === 'bot' && message.sources && message.sources.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-muted-foreground/20">
+            <h4 className="text-xs font-semibold mb-1">Sources:</h4>
+            <div className="space-y-1">
+              {message.sources.map((source, index) => (
+                <div key={index} className="text-xs bg-background/50 p-1.5 rounded-md">
+                   <p className="font-bold">
+                    {source.metadata.source}
+                    {source.metadata.page && ` (Page ${source.metadata.page})`}
+                  </p>
+                  <p className="italic opacity-80 line-clamp-2">"{source.content}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
        {message.role === 'user' && (
-        <Avatar>
-          <AvatarFallback><User /></AvatarFallback>
+        <Avatar className="w-8 h-8">
+          <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
         </Avatar>
       )}
     </div>
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] bg-background">
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            {!selectedProject ? (
-              <>
-                <SplineSceneBasic />
-                <AlertCircle className="h-12 w-12 text-destructive mb-4 mt-4" />
-                <h3 className="text-xl font-semibold">No Project Selected</h3>
-                <p className="text-muted-foreground">Please select a project from the header to start a conversation.</p>
-              </>
-            ) : isCheckingIndex ? (
-              <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
-            ) : isIndexReady ? (
-              <>
-                <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold">Ready to Answer</h3>
-                <p className="text-muted-foreground">Ask a question about the documents in Project {selectedProject}.</p>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="h-12 w-12 text-orange-500 mb-4" />
-                <h3 className="text-xl font-semibold">Index Not Ready</h3>
-                <p className="text-muted-foreground">Please process documents in this project before asking questions.</p>
-              </>
-            )}
-          </div>
-        )}
-        {messages.map((msg, index) => <Message key={index} message={msg} />)}
-        {isLoading && (
-            <div className="flex items-start gap-4">
-                <Avatar><AvatarFallback><Bot /></AvatarFallback></Avatar>
-                <div className="max-w-[75%] rounded-lg p-4 bg-muted flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin"/>
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+    <div className="flex flex-col h-[calc(100vh-4rem)]"> {/* Adjust height based on your layout */}
+      <Card className="flex-1 flex flex-col h-full w-full max-w-4xl mx-auto">
+        <CardHeader className="text-center">
+            <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                <Sparkles className="text-primary"/>
+                Ask Your Documents
+            </CardTitle>
+          <CardDescription>
+            Ask questions about the content of{' '}
+            <span className="font-bold text-primary">{selectedProject ? (typeof selectedProject === 'object' ? selectedProject.name : selectedProject) : 'your selected project'}</span>.
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-4">
+            {messages.length === 0 ? (
+                <div className="text-center text-muted-foreground pt-16">
+                    <MessageSquare size={48} className="mx-auto" />
+                    <p className="mt-4">No messages yet. Start by asking a question below.</p>
                 </div>
-            </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="p-4 border-t bg-card">
-        <form onSubmit={handleSend} className="flex items-center gap-4">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question about your documents..."
-            disabled={isLoading || !selectedProject || !isIndexReady}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={isLoading || !input.trim() || !selectedProject || !isIndexReady} size="icon">
-            <Send className="h-5 w-5" />
-          </Button>
-        </form>
-      </div>
+            ) : (
+                messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </CardContent>
+
+        <div className="p-4 border-t bg-background">
+          <form onSubmit={handleSend} className="flex items-center gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask a question..."
+              className="flex-1 resize-none"
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
+              disabled={!selectedProject || answerMutation.isPending}
+            />
+            <Button 
+              type="submit" 
+              disabled={!input.trim() || !selectedProject || answerMutation.isPending}
+              size="icon"
+            >
+              {answerMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </form>
+           {!selectedProject && (
+              <p className="text-xs text-destructive text-center mt-2">Please select a project from the dropdown in the header to begin.</p>
+           )}
+        </div>
+      </Card>
     </div>
   );
 } 

@@ -2,26 +2,17 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Accessibility: Keyboard Navigation', () => {
   test('Project selector should be fully keyboard accessible', async ({ page }) => {
-    // Mock the API response to ensure the test is stable and fast
-    await page.route('**/api/v1/projects/', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          projects: [
-            { id: 1, name: 'Project 1' },
-            { id: 2, name: 'Project 2' },
-          ],
-        }),
-      });
-    });
+    // Create a unique project name to ensure no cross-test contamination
+    const uniqueProjectName = `AccessTest-${Date.now()}`;
+    await page.getByTestId('new-project-btn').first().click();
+    await page.getByLabel('Project Name').fill(uniqueProjectName);
+    await page.getByRole('button', { name: 'Create Project' }).click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
 
-    await page.goto('/');
-
-    // Wait for the projects to load and select the combobox by its ARIA role
     const projectSelector = page.getByRole('combobox');
     await expect(projectSelector).toBeVisible();
-    await expect(projectSelector).toHaveText('Project 1'); // The component defaults to the first project
+    // Verify that the newly created project is now displayed in the selector
+    await expect(projectSelector).toHaveText(uniqueProjectName);
 
     // Focus the selector and check it's focused
     await projectSelector.focus();

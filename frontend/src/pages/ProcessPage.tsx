@@ -38,7 +38,8 @@ export default function ProcessPage() {
     const toastId = toast.loading('Processing documents...');
 
     try {
-      const response = await apiClient.post(`/data/process/${selectedProject}`, {
+      const projectId = typeof selectedProject === 'object' && selectedProject !== null ? selectedProject.id : selectedProject;
+      const response = await apiClient.post(`/data/process/${projectId}`, {
         chunk_size: chunkSize,
         overlap_size: overlapSize,
         do_reset: doReset ? 1 : 0,
@@ -65,7 +66,19 @@ export default function ProcessPage() {
       }
     } catch (error: any) {
         console.error("Processing failed:", error);
-        const errorMessage = error.response?.data?.detail || error.response?.data?.signal || 'A network error occurred. Please check your connection.';
+        let errorMessage = 'A network error occurred. Please check your connection.';
+        if (error.response?.data?.detail) {
+            if (Array.isArray(error.response.data.detail)) {
+                // Handle Pydantic validation errors
+                errorMessage = error.response.data.detail.map((err: any) => `${err.loc.join('.')} - ${err.msg}`).join('; ');
+            } else {
+                // Handle other string-based detail errors
+                errorMessage = error.response.data.detail;
+            }
+        } else if (error.response?.data?.signal) {
+            errorMessage = error.response.data.signal;
+        }
+        
         toast.error(errorMessage, { id: toastId });
     } finally {
       setIsProcessing(false);
@@ -138,7 +151,7 @@ export default function ProcessPage() {
                 Processing...
               </>
             ) : (
-              `Process Project ${selectedProject}`
+              `Process Project ${typeof selectedProject === 'object' ? selectedProject.name : selectedProject}`
             )}
           </Button>
         </CardContent>

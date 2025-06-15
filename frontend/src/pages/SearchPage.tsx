@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '../components/ui/skeleton';
 import { Search, FileText, AlertCircle, FileQuestion, BarChart, Loader2 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
-import { searchDocuments, SearchResult, fetchIndexInfo } from '../api/db-client';
+import { useSearch, useAnswer } from '../hooks/useNlp';
 import { toast } from 'sonner';
 
 /*
@@ -15,39 +15,30 @@ import { toast } from 'sonner';
   the search form if the index is not ready.
 */
 export default function SearchPage() {
-  const { selectedProject } = useProject();
+  const { 
+    selectedProject, 
+    projectStatus, 
+    isStatusLoading, 
+    fetchProjectStatus,
+    useMockData
+  } = useProject();
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(5);
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [isIndexReady, setIsIndexReady] = useState(false);
-  const [isCheckingIndex, setIsCheckingIndex] = useState(true);
+  const [answer, setAnswer] = useState<string | null>(null);
 
+  const searchMutation = useSearch(useMockData);
+  const answerMutation = useAnswer(useMockData);
+
+  console.log('[SearchPage] Rendering with status:', projectStatus, 'isLoading:', isStatusLoading);
+
+  // Fetch project status when the component mounts or selected project changes
   useEffect(() => {
-    const checkIndexStatus = async () => {
-      if (!selectedProject) {
-        setIsCheckingIndex(false);
-        setIsIndexReady(false);
-        return;
-      }
-      setIsCheckingIndex(true);
-      try {
-        const info = await fetchIndexInfo(selectedProject.toString());
-        if (info && info.collection_info && info.collection_info.points_count > 0) {
-          setIsIndexReady(true);
-        } else {
-          setIsIndexReady(false);
-        }
-      } catch (error) {
-        console.error("Failed to fetch index status:", error);
-        setIsIndexReady(false); // Assume not ready on error
-      } finally {
-        setIsCheckingIndex(false);
-      }
-    };
-    checkIndexStatus();
-  }, [selectedProject]);
+    if (selectedProject) {
+      fetchProjectStatus(selectedProject.id);
+    }
+  }, [selectedProject, fetchProjectStatus]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,25 +51,43 @@ export default function SearchPage() {
       return;
     }
 
-    setIsLoading(true);
     setHasSearched(true);
     setResults([]);
+    setAnswer(null);
 
-    try {
-      const response = await searchDocuments(selectedProject.toString(), query, limit);
-      if (response && response.signal === 'vectordb_search_success') {
-        setResults(response.results);
-      } else {
-        const errorMessage = response?.signal || 'An unknown error occurred during search.';
-        toast.error(errorMessage);
+    const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
+    searchMutation.mutate({ projectId, text: query, limit }, {
+      onSuccess: (data) => {
+        if (data.signal === 'success') {
+          setResults(data.results);
+        } else {
+          toast.error(data.signal || 'An unknown error occurred during search.');
+        }
+      },
+      onError: (err: any) => {
+        toast.error(err.message || 'An unexpected error occurred during search.');
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'An unexpected error occurred during search.';
-      toast.error(errorMessage);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    });
+  };
+
+  const handleAnswer = async () => {
+    if (!query.trim() || !selectedProject) return;
+
+    setAnswer(null);
+    const projectId = typeof selectedProject === 'object' ? selectedProject.id : selectedProject;
+
+    answerMutation.mutate({ projectId, text: query, limit }, {
+      onSuccess: (data) => {
+        if (data.signal === 'success') {
+          setAnswer(data.answer);
+        } else {
+          toast.error(data.signal || 'An unknown error occurred while answering.');
+        }
+      },
+      onError: (err: any) => {
+        toast.error(err.message || 'An unexpected error occurred while answering.');
+      }
+    });
   };
   
   const ResultCard = ({ result }: { result: SearchResult }) => (
@@ -90,7 +99,7 @@ export default function SearchPage() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground line-clamp-3">{result.payload?.text}</p>
+        <p className="text-muted-foreground line-clamp-3">{result.text}</p>
       </CardContent>
       <CardFooter>
         <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
@@ -117,6 +126,11 @@ export default function SearchPage() {
     </Card>
   )
 
+  const isIndexReady = projectStatus && (
+    (useMockData && projectStatus.status?.num_vectors > 0) ||
+    (!useMockData && projectStatus.vector_db?.points_count > 0)
+  );
+
   return (
     <div className="space-y-8">
       <div>
@@ -131,7 +145,7 @@ export default function SearchPage() {
           <AlertCircle className="h-5 w-5" />
           <p>Please select a project to start searching.</p>
         </div>
-      ) : isCheckingIndex ? (
+      ) : isStatusLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -146,7 +160,7 @@ export default function SearchPage() {
               placeholder="Search for keywords, topics, or questions..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              disabled={isLoading}
+              disabled={searchMutation.isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -157,11 +171,11 @@ export default function SearchPage() {
               value={limit}
               onChange={(e) => setLimit(parseInt(e.target.value, 10))}
               className="w-24"
-              disabled={isLoading}
+              disabled={searchMutation.isLoading}
             />
           </div>
-          <Button type="submit" disabled={isLoading || !query.trim()} className="self-end">
-            {isLoading ? (
+          <Button type="submit" disabled={searchMutation.isLoading || !query.trim()} className="self-end">
+            {searchMutation.isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Search className="mr-2 h-4 w-4" />
@@ -177,16 +191,26 @@ export default function SearchPage() {
       )}
 
       <div className="space-y-4">
-        {isLoading && Array.from({ length: limit }).map((_, i) => <ResultSkeleton key={i} />)}
+        {searchMutation.isLoading && Array.from({ length: limit }).map((_, i) => <ResultSkeleton key={i} />)}
 
-        {!isLoading && hasSearched && results.length > 0 && (
-          <>
-            <h3 className="text-xl font-semibold">Found {results.length} result(s)</h3>
-            {results.map((result) => <ResultCard key={result.id} result={result} />)}
-          </>
+        {!searchMutation.isLoading && hasSearched && results.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-semibold">Found {results.length} result(s)</h3>
+              <Button onClick={handleAnswer} disabled={answerMutation.isLoading}>
+                {answerMutation.isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileQuestion className="mr-2 h-4 w-4" />
+                )}
+                Generate Answer
+              </Button>
+            </div>
+            {results.map((result, index) => <ResultCard key={index} result={result} />)}
+          </div>
         )}
         
-        {!isLoading && hasSearched && results.length === 0 && (
+        {!searchMutation.isLoading && hasSearched && results.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg">
             <FileQuestion className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No Results Found</h3>
@@ -194,6 +218,30 @@ export default function SearchPage() {
           </div>
         )}
       </div>
+
+      {answerMutation.isLoading && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Generated Answer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-3/4 mt-2" />
+          </CardContent>
+        </Card>
+      )}
+
+      {answer && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Generated Answer</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{answer}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 } 

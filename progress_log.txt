@@ -1,0 +1,49 @@
+## Progress Log - Mini-RAG Application Debugging
+
+### **Date:** 2024-07-28
+
+### **Issue:** Frontend and backend API endpoints were mismatched, causing multiple pages (Process, Search) to fail.
+
+### **Resolution:**
+
+1.  **Verified Backend Routes:**
+    *   Confirmed that the routes in `local_rag/src/routes/nlp.py` and `local_rag/src/routes/projects.py` were correct and matched the intended API structure.
+
+2.  **Corrected Frontend API Client (`local_rag/frontend/src/api/db-client.ts`):**
+    *   Updated the `fetchStatistics` function to call `/api/v1/projects/{projectId}/statistics` instead of `/statistics/{projectId}`.
+    *   Updated the `fetchIndexInfo` function to call `/api/v1/projects/{projectId}/index` instead of `/index/{projectId}`.
+    *   Updated the `searchDocuments` function to call `/api/v1/nlp/search/{projectId}` instead of `/nlp/index/search/{projectId}`.
+    *   Updated the `answerQuestion` function to call `/api/v1/nlp/answer/{projectId}` instead of `/nlp/index/answer/{projectId}`.
+    *   Updated the `pushToIndex` function to call `/api/v1/nlp/process/{projectId}` instead of `/nlp/index/push/{projectId}`.
+
+3.  **Fixed Frontend Pages:**
+    *   Corrected the condition in `SearchPage.tsx` to check for `projectStatus.vector_db.points_count > 0` instead of incorrectly accessing `projectStatus.points_count` directly. This fix resolves the issue where the search page always showed the "no indexed documents" message.
+
+4.  **Fixed White Screen Issue:**
+    *   Updated `ProjectContext.jsx` to improve null handling and add additional safeguards:
+        *   Added more robust checks for undefined or null values in the projects data
+        *   Added additional logging to help diagnose state-related issues
+        *   Fixed the condition in the useEffect hook to properly check project existence before attempting to access properties
+        *   Added proper null checks when comparing project IDs to prevent "Cannot read property 'id' of null" errors
+
+### **Testing:**
+
+1.  **Backend API Test:**
+    *   Successfully ran `test_api.py` script, which confirmed all backend endpoints are functioning correctly.
+    *   Successfully tested project listing, file upload, document processing, and search functionality.
+    *   The backend is stable and responding correctly to all API calls.
+
+2.  **Frontend Test:**
+    *   The frontend is now running on port 3001.
+    *   Fixed the blank white screen issue by improving error handling in ProjectContext.jsx.
+    *   Backend API endpoints (http://localhost:8000/api/v1/projects/) are accessible and returning correct data.
+
+### **Results:**
+*   Backend API is successfully working with the correct routes.
+*   Frontend fixes are implemented to align with the backend API design.
+*   Fixed the white screen issue by adding proper null/undefined checks.
+
+### **Next Steps:**
+*   Implement comprehensive end-to-end testing with Playwright or Selenium when possible.
+*   Consider adding error logging to both frontend and backend for easier debugging.
+*   Continue monitoring and improving the application based on user feedback. 

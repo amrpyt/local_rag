@@ -1,14 +1,7 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 from typing import List
-import os
-
-# Go up three levels from config.py (src/helpers/config.py) to the project root (local_rag)
-_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_ENV_FILE = os.path.join(_BASE_DIR, '.env')
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=_ENV_FILE, env_file_encoding='utf-8', extra='ignore')
-
     APP_NAME: str
     APP_VERSION: str
     OPENAI_API_KEY: str = None

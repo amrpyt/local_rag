@@ -14,11 +14,11 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Globe,
-  X,
-  BarChart
+  X
 } from 'lucide-react';
 import { useLayout } from '../../context/LayoutContext';
 import FocusTrap from 'focus-trap-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface SidebarProps {
   className?: string;
@@ -57,11 +57,6 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <MessageSquare size={20} aria-hidden="true" />,
     },
     {
-      title: 'Statistics',
-      href: '/statistics',
-      icon: <BarChart size={20} aria-hidden="true" />,
-    },
-    {
       title: 'Index',
       href: '/index',
       icon: <Database size={20} aria-hidden="true" />,
@@ -92,8 +87,8 @@ export function Sidebar({ className }: SidebarProps) {
         <aside
           className={cn(
               'flex flex-col h-full border-r border-border bg-card transition-all duration-300 z-40',
-              'fixed md:relative', // Use fixed position on mobile
-              isSidebarOpen ? 'w-[240px]' : 'w-0 md:w-[80px]', // Control width
+              'fixed md:relative',
+              isSidebarOpen ? 'w-[240px]' : 'w-0 md:w-[80px]',
               'overflow-hidden md:overflow-visible',
             className
           )}
@@ -132,27 +127,43 @@ export function Sidebar({ className }: SidebarProps) {
 
           <div className="flex-1 overflow-auto py-4">
             <nav className="flex flex-col gap-2 px-2" data-testid="sidebar-links">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                    onClick={() => { if (window.innerWidth < 768) setSidebarOpen(false); }} // Close on mobile nav
-                  className={cn(
-                    'flex items-center gap-4 px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
-                    location.pathname === link.href && 'bg-accent text-foreground'
-                  )}
-                >
-                  {link.icon}
-                  <span
+              {links.map((link) =>
+                isSidebarOpen ? (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => {
+                      if (window.innerWidth < 768) setSidebarOpen(false);
+                    }}
                     className={cn(
-                        'transition-opacity duration-300 whitespace-nowrap',
-                        isSidebarOpen ? 'opacity-100' : 'opacity-0'
+                      'flex items-center gap-4 px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
+                      location.pathname === link.href && 'bg-accent text-foreground'
                     )}
                   >
-                    {link.title}
-                  </span>
-                </Link>
-              ))}
+                    {link.icon}
+                    <span className="whitespace-nowrap">{link.title}</span>
+                  </Link>
+                ) : (
+                  <Tooltip key={link.href} delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={link.href}
+                        onClick={() => {
+                          if (window.innerWidth < 768) setSidebarOpen(false);
+                        }}
+                        className={cn(
+                          'flex items-center justify-center h-10 w-10 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
+                          location.pathname === link.href && 'bg-accent text-foreground'
+                        )}
+                      >
+                        {link.icon}
+                        <span className="sr-only">{link.title}</span>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{link.title}</TooltipContent>
+                  </Tooltip>
+                )
+              )}
             </nav>
           </div>
 

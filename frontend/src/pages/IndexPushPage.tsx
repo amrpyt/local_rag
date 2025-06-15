@@ -74,7 +74,7 @@ export default function IndexPushPage() {
             ) : (
               <>
                 <Database className="mr-2 h-4 w-4" />
-                Push Project {selectedProject} to Index
+                Push Project {typeof selectedProject === 'object' ? selectedProject.name : selectedProject} to Index
               </>
             )}
           </Button>

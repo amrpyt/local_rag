@@ -9,8 +9,7 @@ import {
   Settings,
   RefreshCw,
   AlertCircle,
-  CheckCircle2,
-  BarChart2
+  CheckCircle2
 } from 'lucide-react';
 import {
   Card,
@@ -22,64 +21,28 @@ import {
 import { TestApiComponent } from '../components/TestApiComponent';
 import DirectApiTest from '../components/DirectApiTest';
 import { useProject } from '../context/ProjectContext';
-import { useIndexInfo } from '../hooks/useStatistics';
-import { fetchStatistics, Statistics } from '../api/db-client';
+import { useIndexInfo } from '../hooks/useIndexInfo';
 import { Spinner } from '../components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { useError } from '../context/ErrorContext';
-
-// الإحصائيات الافتراضية
-const DEFAULT_STATS: Statistics = {
-  totalDocuments: 0,
-  totalQueries: 0,
-  documentTypes: [],
-  recentQueries: []
-};
+import { SimpleProjectSelector } from '../components/SimpleProjectSelector';
+import MockDataSwitch from '../components/MockDataSwitch';
 
 export default function DashboardPage() {
-  const { selectedProject } = useProject();
+  const { selectedProject, projectStatus, isStatusLoading, fetchProjectStatus } = useProject();
   const { setError } = useError();
   
-  const { 
-    data: indexInfo, 
-    isLoading: indexInfoLoading, 
-    error: indexInfoError 
-  } = useIndexInfo(selectedProject);
-
-  const [statistics, setStatistics] = useState<Statistics | null>(DEFAULT_STATS);
-  const [statsLoading, setStatsLoading] = useState<boolean>(false);
-
-  const loadStatistics = async () => {
-    if (!selectedProject) return;
-
-    setStatsLoading(true);
-    setError(null); // Clear previous errors
-    try {
-      const stats = await fetchStatistics(selectedProject.toString());
-      setStatistics(stats);
-    } catch (err: any) {
-      setError(err.message || "Failed to load statistics");
-      setStatistics(DEFAULT_STATS);
-    } finally {
-      setStatsLoading(false);
+  const loadProjectData = () => {
+    if (selectedProject?.id) {
+        fetchProjectStatus(selectedProject.id);
     }
   };
 
   useEffect(() => {
-    if (selectedProject) {
-      loadStatistics();
-    } else {
-      setStatistics(DEFAULT_STATS);
-    }
+    loadProjectData();
   }, [selectedProject]);
 
-  useEffect(() => {
-    if (indexInfoError) {
-        setError(indexInfoError.message);
-    }
-  }, [indexInfoError, setError]);
-
-  const isLoading = indexInfoLoading || statsLoading;
+  const isLoading = isStatusLoading;
 
   if (!selectedProject) {
     return (
@@ -102,22 +65,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // تكوين بيانات الإحصائيات للعرض
-  const statsItems = [
-    { 
-      title: 'Documents', 
-      value: statistics?.totalDocuments?.toString() || '0', 
-      icon: <FileText className="h-5 w-5 text-green-500" />,
-      description: 'Indexed documents',
-    },
-    { 
-      title: 'Queries', 
-      value: statistics?.totalQueries?.toString() || '0', 
-      icon: <Search className="h-5 w-5 text-purple-500" />,
-      description: 'Search queries',
-    },
-  ];
 
   const features = [
     {
@@ -148,9 +95,14 @@ export default function DashboardPage() {
       title: 'Manage Index',
       description: 'View and manage your vector index',
       icon: <Database className="h-6 w-6" />,
-      href: '/index/info',
+      href: '/index',
     },
   ];
+
+  const getProjectName = () => {
+    if (!selectedProject) return "No project selected";
+    return typeof selectedProject === 'object' ? selectedProject.name : `Project ${selectedProject}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -161,7 +113,7 @@ export default function DashboardPage() {
             Welcome to Mini-RAG, a personal document question answering system
           </p>
         </div>
-        <Button onClick={loadStatistics} disabled={isLoading || !selectedProject}>
+        <Button onClick={loadProjectData} disabled={isLoading || !selectedProject}>
           {isLoading ? <Spinner className="mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
           Refresh Data
         </Button>
@@ -171,7 +123,7 @@ export default function DashboardPage() {
         <Card data-testid="card-documents">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center">
-              <CardTitle className="text-sm font-medium">Documents</CardTitle>
+              <CardTitle className="text-sm font-medium">Indexed Chunks</CardTitle>
               <FileText className="ml-2 h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
@@ -183,29 +135,8 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
-                <div className="text-2xl font-bold">{statistics?.totalDocuments || 0}</div>
-                <p className="text-xs text-muted-foreground">Indexed documents</p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card data-testid="card-queries">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center">
-              <CardTitle className="text-sm font-medium">Queries</CardTitle>
-              <Search className="ml-2 h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <Spinner className="h-4 w-4" />
-                <span className="text-sm text-muted-foreground">Loading...</span>
-              </div>
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{statistics?.totalQueries || 0}</div>
-                <p className="text-xs text-muted-foreground">Search queries</p>
+                <div className="text-2xl font-bold">{projectStatus?.points_count || 0}</div>
+                <p className="text-xs text-muted-foreground">Chunks in the vector database</p>
               </>
             )}
           </CardContent>
@@ -226,161 +157,48 @@ export default function DashboardPage() {
             ) : (
               <>
                 <div className="flex items-center text-lg">
-                  {indexInfo?.signal === 'vectordb_collection_retrieved' ? (
+                  {projectStatus?.points_count > 0 ? (
                     <>
                       <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
                       <span className="font-medium">Ready</span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="h-5 w-5 text-amber-500 mr-2" />
-                      <span className="font-medium">Not Initialized</span>
+                      <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
+                      <span className="font-medium">Not Indexed</span>
                     </>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Vector database collection status</p>
+                <p className="text-xs text-muted-foreground">
+                  {getProjectName()}
+                </p>
               </>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <div>
-        <h3 className="text-lg font-medium">Quick Actions</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <Upload className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-lg">Upload Documents</h3>
-              </div>
-              <p className="text-sm text-center text-muted-foreground">Upload PDF documents to analyze</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button variant="outline" asChild>
-                <a href="/upload">Get Started</a>
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <FileText className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-lg">Process Documents</h3>
-              </div>
-              <p className="text-sm text-center text-muted-foreground">Split documents into chunks</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button variant="outline" asChild>
-                <a href="/process">Get Started</a>
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <Search className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-lg">Search Documents</h3>
-              </div>
-              <p className="text-sm text-center text-muted-foreground">Search across your documents</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button variant="outline" asChild>
-                <a href="/search">Get Started</a>
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <MessageSquare className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-lg">Ask Questions</h3>
-              </div>
-              <p className="text-sm text-center text-muted-foreground">Get answers from your documents</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button variant="outline" asChild>
-                <a href="/qa">Get Started</a>
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center mb-4">
-                <Database className="h-8 w-8 mx-auto text-primary" />
-                <h3 className="mt-3 font-semibold text-lg">Manage Index</h3>
-              </div>
-              <p className="text-sm text-center text-muted-foreground">View and manage your vector index</p>
-            </CardContent>
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button variant="outline" asChild>
-                <a href="/index/info">Get Started</a>
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
-
-      {/* Project Status Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Project Status</CardTitle>
-          <CardDescription>Current status of project {selectedProject}</CardDescription>
+          <CardTitle>Key Features</CardTitle>
+          <CardDescription>
+            Navigate to the core functionalities of the application from here.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Spinner className="h-8 w-8" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium mb-2 flex items-center">
-                    <Database className="h-4 w-4 mr-1" /> Vector Database
-                  </h4>
-                  <div className="bg-muted rounded-md p-3">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-muted-foreground">Status:</div>
-                      <div className="font-medium">
-                        {indexInfo?.signal === 'vectordb_collection_retrieved' ? 'Active' : 'Not Initialized'}
-                      </div>
-                      <div className="text-muted-foreground">Documents:</div>
-                      <div className="font-medium">{statistics?.totalDocuments || 0}</div>
-                      <div className="text-muted-foreground">Collection:</div>
-                      <div className="font-medium">
-                        {indexInfo?.collection_info?.table_info?.tablename || 'N/A'}
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {features.map((feature, index) => (
+              <a href={feature.href} key={index} className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  {feature.icon}
+                  <div>
+                    <h3 className="font-semibold">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-2 flex items-center">
-                    <BarChart2 className="h-4 w-4 mr-1" /> Usage Statistics
-                  </h4>
-                  <div className="bg-muted rounded-md p-3">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-muted-foreground">Queries:</div>
-                      <div className="font-medium">{statistics?.totalQueries || 0}</div>
-                      <div className="text-muted-foreground">Last Updated:</div>
-                      <div className="font-medium">{new Date().toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="pt-4">
-                <h4 className="text-sm font-medium mb-2">Next Steps</h4>
-                <div className="text-sm text-muted-foreground">
-                  {statistics?.totalDocuments === 0 ? (
-                    <p>Start by uploading documents to your project from the Upload page.</p>
-                  ) : (
-                    <p>Your documents are indexed. You can now search or ask questions about your content.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+              </a>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -394,6 +212,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         <DirectApiTest />
+      </div>
+
+      <div className="mt-8 border-t pt-6">
+        <MockDataSwitch />
       </div>
     </div>
   );

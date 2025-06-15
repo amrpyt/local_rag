@@ -1,0 +1,12 @@
+This is a test document for the Mini-RAG application.
+It contains multiple sentences to test the chunking and embedding process.
+The quick brown fox jumps over the lazy dog.
+This is the end of the document.
+
+Key points about RAG (Retrieval-Augmented Generation):
+1. RAG combines retrieval of documents with generative AI
+2. It helps ground LLM responses in factual information
+3. RAG reduces hallucinations by providing relevant context
+4. The vector database is a key component for semantic search
+
+This document should be indexed and searchable once processed. 

@@ -1,7 +1,7 @@
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
-import { AlertCircle, RefreshCcw, UploadCloud, Trash2 } from 'lucide-react';
+import { AlertCircle, RefreshCcw, UploadCloud, Trash2, Users } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { useIndexInfo } from '../hooks/useStatistics';
 import { useResetIndex } from '../hooks/useNlp';
@@ -27,13 +27,13 @@ export default function IndexInfoPage() {
     });
   };
   
-  const StatCard = ({ title, value, isLoading }) => (
+  const StatCard = ({ title, value, isLoading, testId }) => (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? <Skeleton className="h-8 w-1/2" /> : <p className="text-2xl font-bold">{value ?? 'N/A'}</p>}
+        {isLoading ? <Skeleton className="h-8 w-1/2" /> : <p data-testid={testId} className="text-2xl font-bold">{value ?? 'N/A'}</p>}
       </CardContent>
     </Card>
   );
@@ -73,7 +73,7 @@ export default function IndexInfoPage() {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard title="Collection Name" value={indexInfo.collection_info.table_info.tablename} isLoading={false} />
-          <StatCard title="Indexed Records" value={indexInfo.collection_info.record_count} isLoading={false} />
+          <StatCard title="Indexed Records" value={indexInfo.collection_info.record_count} isLoading={false} testId="total-records" />
           <StatCard title="Index Status" value={indexInfo.collection_info.table_info.hasindexes ? 'Active' : 'Not Active'} isLoading={false} />
         </div>
       );
@@ -114,6 +114,19 @@ export default function IndexInfoPage() {
       </div>
 
       {renderContent()}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Records</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div data-testid="total-records" className="text-2xl font-bold">{indexInfo?.collection_info.record_count || 0}</div>
+          <p className="text-xs text-muted-foreground">
+            Total number of items in the vector index.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

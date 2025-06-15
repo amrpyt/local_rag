@@ -86,7 +86,7 @@ async def upload_data(request: Request, project_id: int, file: UploadFile,
     return JSONResponse(
             content={
                 "signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
-                "file_id": str(asset_record.asset_id),
+                "file_id": file_id,
             }
         )
 
@@ -199,6 +199,15 @@ async def process_endpoint(request: Request, project_id: int, process_request: P
                 }
             )
 
+        # Upsert into vector database and insert into relational database
+        chunk_texts = [chunk.page_content for chunk in file_chunks]
+        chunk_metadata = [chunk.metadata for chunk in file_chunks]
+
+        # This is a placeholder for getting real chunk IDs after insertion
+        # In a real scenario, you might insert into DB first, get IDs, then upsert to vector DB
+        # For now, we'll proceed with a simplified approach
+        
+        # Insert into relational DB to get IDs
         file_chunks_records = [
             DataChunk(
                 chunk_text=chunk.page_content,
@@ -209,8 +218,22 @@ async def process_endpoint(request: Request, project_id: int, process_request: P
             )
             for i, chunk in enumerate(file_chunks)
         ]
+        
+        inserted_chunk_ids = await chunk_model.insert_many_chunks_and_get_ids(chunks=file_chunks_records)
 
-        no_records += await chunk_model.insert_many_chunks(chunks=file_chunks_records)
+        if not inserted_chunk_ids:
+            logger.error(f"Failed to insert chunks for file: {file_id}")
+            continue
+
+        # Now, use the real IDs to index into the vector DB
+        await nlp_controller.index_into_vector_db(
+            project=project,
+            chunks=file_chunks_records, # Pass the correct DataChunk objects
+            chunks_ids=inserted_chunk_ids, # The real integer IDs
+            do_reset=(do_reset == 1 and no_files == 0) # Only reset on the first file of a batch
+        )
+
+        no_records += len(inserted_chunk_ids)
         no_files += 1
 
     return JSONResponse(

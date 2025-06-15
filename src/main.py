@@ -1,11 +1,11 @@
-import sys
-import os
+from dotenv import load_dotenv
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Load environment variables from .env file in the current directory (which will be 'src')
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import base, data, nlp, projects, statistics, index
+from routes import base, data, nlp, projects, index
 from helpers.config import get_settings
 from stores.llm.LLMProviderFactory import LLMProviderFactory
 from stores.vectordb.VectorDBProviderFactory import VectorDBProviderFactory
@@ -26,7 +26,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -76,4 +76,3 @@ app.include_router(data.data_router)
 app.include_router(nlp.nlp_router)
 app.include_router(index.index_router)
 app.include_router(projects.projects_router)
-app.include_router(statistics.statistics_router)
