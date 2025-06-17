@@ -1,7 +1,31 @@
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Github, Server } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { useState } from 'react';
+import { Spinner } from '../components/ui/spinner';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { JsonDisplay } from '../components/JsonDisplay';
+import apiClient from '../api/client';
 
 export default function AboutPage() {
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleTryIt = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Real API call
+      const result = await apiClient.get('/');
+      setResponse(result.data);
+    } catch (err) {
+      console.error('Error fetching welcome endpoint:', err);
+      setError(err.message || 'Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       <div>
@@ -64,6 +88,40 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
+        </div>
+        
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <h3 className="text-xl font-semibold mb-3">API Information</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <Server className="h-5 w-5 text-primary" />
+            <span className="font-medium">Welcome Endpoint</span>
+          </div>
+          
+          <p className="mb-2"><strong>Endpoint:</strong> GET /api/v1/</p>
+          <p className="mb-4"><strong>Description:</strong> Returns the application name and version.</p>
+          
+          <Button 
+            onClick={handleTryIt}
+            disabled={loading}
+            className="mt-2"
+          >
+            {loading ? <><Spinner className="mr-2 h-4 w-4" /> Loading...</> : 'Try API'}
+          </Button>
+
+          {error && (
+            <div className="mt-4 p-4 border border-red-200 rounded-md bg-red-50">
+              <p className="text-red-500">{error}</p>
+            </div>
+          )}
+
+          {response && !error && (
+            <div className="mt-4">
+              <h4 className="font-medium mb-2">Response:</h4>
+              <JsonDisplay className="bg-muted p-4 rounded-md overflow-auto">
+                {JSON.stringify(response, null, 2)}
+              </JsonDisplay>
+            </div>
+          )}
         </div>
         
         <div className="rounded-xl border bg-card text-card-foreground shadow p-6">

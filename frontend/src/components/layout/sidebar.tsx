@@ -38,11 +38,6 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <LayoutDashboard size={20} aria-hidden="true" />,
     },
     {
-      title: 'Welcome API',
-      href: '/welcome',
-      icon: <Home size={20} aria-hidden="true" />,
-    },
-    {
       title: 'Upload',
       href: '/upload',
       icon: <Upload size={20} aria-hidden="true" />,
@@ -53,6 +48,11 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <Settings size={20} aria-hidden="true" />,
     },
     {
+      title: 'Index',
+      href: '/index',
+      icon: <Database size={20} aria-hidden="true" />,
+    },
+    {
       title: 'Search',
       href: '/search',
       icon: <Search size={20} aria-hidden="true" />,
@@ -61,11 +61,6 @@ export function Sidebar({ className }: SidebarProps) {
       title: 'Q&A',
       href: '/qa',
       icon: <MessageSquare size={20} aria-hidden="true" />,
-    },
-    {
-      title: 'Index',
-      href: '/index',
-      icon: <Database size={20} aria-hidden="true" />,
     },
     {
       title: 'Test Connection',
