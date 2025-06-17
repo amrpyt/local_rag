@@ -160,9 +160,63 @@ const searchIndex = async ({ projectId, text, limit, useMockData }: { projectId:
     await new Promise(resolve => setTimeout(resolve, 700));
     return { signal: ResponseSignals.VECTORDB_SEARCH_SUCCESS, results: mockSearchResults(text) };
   }
-  const { data } = await apiClient.post<SearchResponse>(`/nlp/index/search/${projectId}`, { text, limit });
-  console.log('Search API response:', data);
-  return data;
+  
+  try {
+    const { data } = await apiClient.post<SearchResponse>(`/nlp/index/search/${projectId}`, { text, limit });
+    console.log('Search API raw response:', data);
+    
+    // Verify the response structure
+    if (!data || !data.signal) {
+      console.error('Invalid API response format:', data);
+      return { 
+        signal: ResponseSignals.VECTORDB_SEARCH_ERROR, 
+        results: [] 
+      };
+    }
+    
+    // Make sure results is always an array
+    if (!data.results) {
+      console.warn('No results in API response, setting empty array');
+      data.results = [];
+    } else if (!Array.isArray(data.results)) {
+      console.error('API response results is not an array:', data.results);
+      data.results = [data.results]; // Convert to array if it's a single item
+    }
+    
+    // Check for duplicate results and log them without modifying the response
+    if (data.results.length > 0) {
+      // Check if there are any duplicates
+      const texts = data.results.map(r => r.text);
+      const uniqueTexts = new Set(texts);
+      
+      console.log(`Total results: ${data.results.length}, Unique results: ${uniqueTexts.size}`);
+      
+      if (uniqueTexts.size < texts.length) {
+        console.warn(`Found ${texts.length - uniqueTexts.size} duplicate results in API response`);
+        
+        // Find which texts are duplicated
+        const textCounts = {};
+        texts.forEach(text => {
+          textCounts[text] = (textCounts[text] || 0) + 1;
+        });
+        
+        // Log the duplicated texts
+        Object.entries(textCounts)
+          .filter(([_, count]) => (count as number) > 1)
+          .forEach(([text, count]) => {
+            console.warn(`Text "${text.substring(0, 50)}..." appears ${count} times`);
+          });
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in searchIndex:', error);
+    return {
+      signal: ResponseSignals.VECTORDB_SEARCH_ERROR,
+      results: []
+    };
+  }
 };
 
 const answerQuestion = async ({ projectId, text, useMockData }: { projectId: string; text: string; useMockData: boolean }): Promise<AnswerResponse> => {

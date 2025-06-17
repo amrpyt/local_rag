@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -62,7 +62,12 @@ export default function SearchPage() {
     searchMutation.mutate({ projectId, text: query, limit }, {
       onSuccess: (data) => {
         if (isSuccessResponse(data)) {
-          setResults(data.results);
+          console.log("Search results received:", data.results);
+          if (data.results && Array.isArray(data.results)) {
+            setResults(data.results);
+          } else {
+            setError("Invalid search results format received");
+          }
         } else {
           setError(handleApiError(data, 'Search failed. Please try again.'));
         }
@@ -72,6 +77,12 @@ export default function SearchPage() {
       }
     });
   };
+
+  // Log when results state changes
+  useEffect(() => {
+    console.log("Results state updated:", results);
+    console.log("Results length:", results.length);
+  }, [results]);
 
   const handleAnswer = async () => {
     if (!query.trim() || !selectedProject) return;
@@ -212,7 +223,11 @@ export default function SearchPage() {
                 Generate Answer
               </Button>
             </div>
-            {results.map((result, index) => <ResultCard key={index} result={result} />)}
+            <div className="space-y-4">
+              {results.map((result, index) => (
+                <ResultCard key={`result-${index}`} result={result} />
+              ))}
+            </div>
           </div>
         )}
         

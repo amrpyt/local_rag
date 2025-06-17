@@ -26,6 +26,11 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => {
     console.log(`API Response: ${response.status} ${response.statusText}`);
+    // Add detailed logging for search results
+    if (response.config.url?.includes('/nlp/index/search/')) {
+      console.log('Search response data:', response.data);
+      console.log('Number of results:', response.data.results?.length);
+    }
     return response;
   },
   (error) => {

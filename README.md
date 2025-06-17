@@ -105,7 +105,7 @@ $ sudo docker compose up -d
 ## Run the FastAPI server
 
 ```bash
-$ uvicorn main:app --reload --host 0.0.0.0 --port 5000
+$ uvicorn main:app --reload --host 0.0.0.0 --port 8008
 ```
 
 ## POSTMAN Collection
@@ -114,3 +114,6 @@ Download the POSTMAN collection from [/assets/mini-rag-app.postman_collection.js
 
 cd frontend && npm run dev
 
+
+tmux : 
+tmux attach -t amr_back

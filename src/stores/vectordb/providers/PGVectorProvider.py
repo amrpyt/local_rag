@@ -315,7 +315,7 @@ class PGVectorProvider(VectorDBInterface):
         async with self.db_client() as session:
             async with session.begin():
                 search_sql = sql_text(f"""
-                    SELECT 
+                    SELECT DISTINCT ON (t2.chunk_text)
                         t2.chunk_text as text, 
                         1 - (t1.vector <=> :vector) as score,
                         t2.chunk_metadata,
@@ -323,13 +323,15 @@ class PGVectorProvider(VectorDBInterface):
                     FROM {collection_name} t1
                     JOIN chunks t2 ON t1.chunk_id = t2.chunk_id
                     JOIN assets t3 ON t2.chunk_asset_id = t3.asset_id
-                    ORDER BY score DESC
+                    ORDER BY t2.chunk_text, score DESC
                     LIMIT {limit}
                 """)
                 
                 result = await session.execute(search_sql, {"vector": vector})
 
                 records = result.fetchall()
+
+                self.logger.info(f"Found {len(records)} unique results for vector search")
 
                 return [
                     {
